@@ -57,6 +57,23 @@ or `agrocure_ai`.
 
 Open your browser at: **`http://127.0.0.1:5000`**
 
+### Streamlit Community Cloud
+The repository also includes a Streamlit app for the Model 2 image-diagnosis
+workflow. It supports tomato, potato, and capsicum; the existing React/FastAPI
+site, login, admin portal, and MongoDB-backed features remain available through
+the regular application and are not part of this Streamlit entry point.
+
+Run it locally from the project root:
+```powershell
+streamlit run streamlit_app.py
+```
+
+To deploy, connect the GitHub repository to
+[Streamlit Community Cloud](https://share.streamlit.io), choose branch `main`,
+and set `streamlit_app.py` as the app file. The app uses the repository's
+`requirements.txt` and needs no database secrets. Keep Python on a version
+supported by TensorFlow (Python 3.12 is the configured Cloud default).
+
 ### Administrator Setup
 No demo user or administrator accounts are created. To create an initial admin,
 set `AGROCURE_INITIAL_ADMIN_EMAIL` and `AGROCURE_INITIAL_ADMIN_PASSWORD` in the
