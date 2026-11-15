@@ -1,0 +1,10 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+Pillow>=10
+numpy>=1.26
+pymongo>=4.6,<5
+dnspython>=2.7,<3
+h5py>=3.10
+tensorflow-intel>=2.16,<2.19; platform_system == "Windows"
+tensorflow>=2.16,<2.19; platform_system != "Windows"

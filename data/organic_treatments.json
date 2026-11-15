@@ -1,0 +1,57 @@
+[
+  {
+    "id": "org_01",
+    "name": "Cold-Pressed Neem Oil (Azadirachtin 10,000 PPM)",
+    "category": "Botanical Bio-fungicide & Repellent",
+    "assigned_diseases": [
+      "Tomato Early Blight",
+      "Tomato Bacterial Spot",
+      "Capsicum Bacterial Spot"
+    ],
+    "instructions": "Mix 5ml pure neem oil + 2ml organic liquid soap per 1 liter of soft water. Agitate vigorously until milky emulsion forms. Spray foliar undersides thoroughly at dusk.",
+    "frequency": "Every 7 to 10 days prophylactically, or every 5 days during active foliar symptoms.",
+    "precautions": "Avoid application during peak midday sunlight (>32\u00b0C) to prevent foliar phytotoxicity scorch. Test on small patch 24h prior.",
+    "image": "/static/samples/sample_tomato_early_blight.jpg"
+  },
+  {
+    "id": "org_02",
+    "name": "Trichoderma viride / harzianum Bio-Inoculant",
+    "category": "Beneficial Antagonistic Microbe",
+    "assigned_diseases": [
+      "Tomato Late Blight",
+      "Potato Late Blight",
+      "Grapes Black Rot"
+    ],
+    "instructions": "Dissolve 50g Trichoderma wettable powder (2x10^6 CFU/g) in 10 liters clean non-chlorinated water. Apply as foliar drench and root zone soak to outcompete soilborne oomycetes.",
+    "frequency": "At transplanting, then every 14 days during vegetative flushes.",
+    "precautions": "Do not mix with synthetic copper fungicides or antibiotics within 7 days, as copper degrades viable fungal spores.",
+    "image": "/static/samples/sample_potato_late_blight.jpg"
+  },
+  {
+    "id": "org_03",
+    "name": "Pseudomonas fluorescens (Bio-Bactericide)",
+    "category": "Bacterial Antagonist & Systemic Inducer",
+    "assigned_diseases": [
+      "Tomato Bacterial Spot",
+      "Capsicum Bacterial Spot"
+    ],
+    "instructions": "Mix 10g per liter of water. Spray canopy thoroughly during early morning dew to induce systemic acquired resistance (SAR).",
+    "frequency": "Bi-weekly throughout nursery and early flowering.",
+    "precautions": "Store microbial packets in cool shade below 25\u00b0C. Check expiration date for high viable colony counts.",
+    "image": "/static/samples/sample_capsicum_bacterial_spot.jpg"
+  },
+  {
+    "id": "org_04",
+    "name": "Potassium Bicarbonate Eco-Fungicide",
+    "category": "Natural Mineral Contact Fungicide",
+    "assigned_diseases": [
+      "Grapes Black Rot",
+      "Tomato Early Blight",
+      "Potato Early Blight"
+    ],
+    "instructions": "Dissolve 4g potassium bicarbonate + 2ml horticultural oil per liter water. Disrupts fungal cell wall osmotic pressure on contact.",
+    "frequency": "Spray immediately upon first lesion detection, repeat after heavy rainfall.",
+    "precautions": "Ensure spray solution pH remains near 8.0-8.5. Do not overdose on tender young grape shoots.",
+    "image": "/static/samples/sample_grapes_black_rot.jpg"
+  }
+]

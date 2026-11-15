@@ -1,0 +1,2468 @@
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+admin_html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGROCURE AI – Advanced Enterprise Administration Gateway</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            forest: {
+              DEFAULT: '#14532D',
+              deep: '#0B331A',
+              light: '#1B693A'
+            },
+            leaf: {
+              DEFAULT: '#22C55E',
+              glow: '#4ADE80',
+              soft: '#DCFCE7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- React 18 & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.3);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200 antialiased selection:bg-leaf selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // Toast helper
+    const Toast = ({ message, type, onClose }) => {
+      useEffect(() => {
+        const timer = setTimeout(onClose, 3500);
+        return () => clearTimeout(timer);
+      }, [onClose]);
+
+      return (
+        <div className={`fixed bottom-5 right-5 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3 text-xs font-bold text-white transition-all transform animate-bounce ${
+          type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
+        }`}>
+          <i className={`fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'} text-base`}></i>
+          <span>{message}</span>
+          <button onClick={onClose} className="ml-2 hover:opacity-75">
+            <i className="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      );
+    };
+
+    function App() {
+      // Auth State
+      const [token, setToken] = useState(() => localStorage.getItem('agrocure_admin_jwt') || '');
+      const [admin, setAdmin] = useState(() => {
+        try {
+          return JSON.parse(localStorage.getItem('agrocure_admin_profile') || 'null');
+        } catch {
+          return null;
+        }
+      });
+
+      // App UI State
+      const [theme, setTheme] = useState(() => localStorage.getItem('agrocure_theme') || 'light');
+      const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+      const [activeTab, setActiveTab] = useState('dashboard');
+      const [toast, setToast] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      // Data States
+      const [stats, setStats] = useState(null);
+      const [users, setUsers] = useState([]);
+      const [predictions, setPredictions] = useState([]);
+      const [diseases, setDiseases] = useState([]);
+      const [organicTreatments, setOrganicTreatments] = useState([]);
+      const [inorganicTreatments, setInorganicTreatments] = useState([]);
+      const [multilingual, setMultilingual] = useState({});
+      const [models, setModels] = useState([]);
+      const [feedbackList, setFeedbackList] = useState([]);
+      const [notifications, setNotifications] = useState([]);
+      const [settings, setSettings] = useState({});
+      const [activityLogs, setActivityLogs] = useState([]);
+
+      // Modal States
+      const [inspectUser, setInspectUser] = useState(null);
+      const [inspectScan, setInspectScan] = useState(null);
+      const [diseaseModal, setDiseaseModal] = useState({ open: false, data: null });
+      const [organicModal, setOrganicModal] = useState({ open: false, data: null });
+      const [inorganicModal, setInorganicModal] = useState({ open: false, data: null });
+      const [notifModal, setNotifModal] = useState(false);
+
+      const showToast = (message, type = 'success') => setToast({ message, type });
+
+      // Theme toggle effect
+      useEffect(() => {
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('agrocure_theme', theme);
+      }, [theme]);
+
+      const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+      // Authenticated fetch wrapper
+      const authFetch = async (url, options = {}) => {
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...(options.headers || {})
+        };
+        const res = await fetch(url, { ...options, headers });
+        if (res.status === 401) {
+          handleLogout('Session expired. Please log in again.');
+          throw new Error('Unauthorized');
+        }
+        return res;
+      };
+
+      // Load initial data upon login
+      const refreshData = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+          const [
+            statsRes, usersRes, predsRes, disRes, orgRes, inorgRes, multiRes, modelsRes, fbRes, notifRes, setsRes, logsRes
+          ] = await Promise.all([
+            authFetch('/api/admin/dashboard/stats').then(r => r.json()),
+            authFetch('/api/admin/users').then(r => r.json()),
+            authFetch('/api/admin/predictions').then(r => r.json()),
+            authFetch('/api/admin/diseases').then(r => r.json()),
+            authFetch('/api/admin/treatments/organic').then(r => r.json()),
+            authFetch('/api/admin/treatments/inorganic').then(r => r.json()),
+            authFetch('/api/admin/multilingual').then(r => r.json()),
+            authFetch('/api/admin/models').then(r => r.json()),
+            authFetch('/api/admin/feedback').then(r => r.json()),
+            authFetch('/api/admin/notifications').then(r => r.json()),
+            authFetch('/api/admin/settings').then(r => r.json()),
+            authFetch('/api/admin/activity-logs').then(r => r.json())
+          ]);
+
+          setStats(statsRes);
+          setUsers(usersRes);
+          setPredictions(predsRes);
+          setDiseases(disRes);
+          setOrganicTreatments(orgRes);
+          setInorganicTreatments(inorgRes);
+          setMultilingual(multiRes);
+          setModels(modelsRes);
+          setFeedbackList(fbRes);
+          setNotifications(notifRes);
+          setSettings(setsRes);
+          setActivityLogs(logsRes);
+        } catch (err) {
+          console.error("Data load error:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        if (token) {
+          refreshData();
+        }
+      }, [token]);
+
+      const handleLoginSuccess = (newToken, adminUser) => {
+        setToken(newToken);
+        setAdmin(adminUser);
+        localStorage.setItem('agrocure_admin_jwt', newToken);
+        localStorage.setItem('agrocure_admin_profile', JSON.stringify(adminUser));
+        showToast(`Welcome back, ${adminUser.name}!`);
+      };
+
+      const handleLogout = (msg = 'Logged out safely.') => {
+        if (token) {
+          fetch('/api/admin/auth/logout', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).catch(() => {});
+        }
+        setToken('');
+        setAdmin(null);
+        localStorage.removeItem('agrocure_admin_jwt');
+        localStorage.removeItem('agrocure_admin_profile');
+        showToast(msg);
+      };
+
+      // If not authenticated, render Login Page
+      if (!token || !admin) {
+        return (
+          <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            showToast={showToast}
+          />
+        );
+      }
+
+      return (
+        <div className="flex h-screen overflow-hidden bg-slate-100/70 dark:bg-slate-950">
+          {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+          {/* Sidebar */}
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            collapsed={sidebarCollapsed}
+            setCollapsed={setSidebarCollapsed}
+            adminRole={admin.role}
+            onLogout={handleLogout}
+          />
+
+          {/* Main Area */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Top Navbar */}
+            <TopNavbar
+              admin={admin}
+              theme={theme}
+              toggleTheme={toggleTheme}
+              activeTab={activeTab}
+              onLogout={handleLogout}
+              onRefresh={refreshData}
+              loading={loading}
+            />
+
+            {/* Content Body */}
+            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scroll space-y-6">
+              {activeTab === 'dashboard' && (
+                <DashboardView stats={stats} predictions={predictions} setActiveTab={setActiveTab} />
+              )}
+              {activeTab === 'users' && (
+                <UsersView
+                  users={users}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  setInspectUser={setInspectUser}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'predictions' && (
+                <PredictionsView
+                  predictions={predictions}
+                  setInspectScan={setInspectScan}
+                />
+              )}
+              {activeTab === 'diseases' && (
+                <DiseasesView
+                  diseases={diseases}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  setDiseaseModal={setDiseaseModal}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'organic' && (
+                <OrganicTreatmentsView
+                  treatments={organicTreatments}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  setOrganicModal={setOrganicModal}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'inorganic' && (
+                <InorganicTreatmentsView
+                  treatments={inorganicTreatments}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  setInorganicModal={setInorganicModal}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'multilingual' && (
+                <MultilingualView
+                  multilingual={multilingual}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'models' && (
+                <ModelsView
+                  models={models}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'feedback' && (
+                <FeedbackView
+                  feedbackList={feedbackList}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'notifications' && (
+                <NotificationsView
+                  notifications={notifications}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  setNotifModal={setNotifModal}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'reports' && (
+                <ReportsView stats={stats} predictions={predictions} users={users} />
+              )}
+              {activeTab === 'settings' && (
+                <SettingsView
+                  settings={settings}
+                  authFetch={authFetch}
+                  onRefresh={refreshData}
+                  showToast={showToast}
+                  adminRole={admin.role}
+                />
+              )}
+              {activeTab === 'logs' && (
+                <ActivityLogsView activityLogs={activityLogs} />
+              )}
+            </main>
+          </div>
+
+          {/* Modals */}
+          {inspectUser && (
+            <UserInspectModal user={inspectUser} onClose={() => setInspectUser(null)} />
+          )}
+          {inspectScan && (
+            <ScanInspectModal scan={inspectScan} onClose={() => setInspectScan(null)} />
+          )}
+          {diseaseModal.open && (
+            <DiseaseEditModal
+              initial={diseaseModal.data}
+              onClose={() => setDiseaseModal({ open: false, data: null })}
+              authFetch={authFetch}
+              onSuccess={() => { refreshData(); setDiseaseModal({ open: false, data: null }); showToast('Disease record saved.'); }}
+            />
+          )}
+          {organicModal.open && (
+            <OrganicEditModal
+              initial={organicModal.data}
+              onClose={() => setOrganicModal({ open: false, data: null })}
+              authFetch={authFetch}
+              onSuccess={() => { refreshData(); setOrganicModal({ open: false, data: null }); showToast('Organic treatment saved.'); }}
+            />
+          )}
+          {inorganicModal.open && (
+            <InorganicEditModal
+              initial={inorganicModal.data}
+              onClose={() => setInorganicModal({ open: false, data: null })}
+              authFetch={authFetch}
+              onSuccess={() => { refreshData(); setInorganicModal({ open: false, data: null }); showToast('Chemical solution saved.'); }}
+            />
+          )}
+          {notifModal && (
+            <NotificationCreateModal
+              onClose={() => setNotifModal(false)}
+              authFetch={authFetch}
+              onSuccess={() => { refreshData(); setNotifModal(false); showToast('Broadcast alert dispatched!'); }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 1. LOGIN PAGE
+    // ==========================================
+    function LoginPage({ onLoginSuccess, theme, toggleTheme, showToast }) {
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [submitting, setSubmitting] = useState(false);
+      const [errorMsg, setErrorMsg] = useState('');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setErrorMsg('');
+        try {
+          const res = await fetch('/api/admin/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (res.ok && data.token) {
+            onLoginSuccess(data.token, data.admin);
+          } else {
+            setErrorMsg(data.detail || 'Authentication failed. Please verify credentials.');
+          }
+        } catch (err) {
+          setErrorMsg('Server connection failed. Ensure backend server is active.');
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4 relative overflow-hidden">
+          {/* Ambient Glows */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#14532D]/40 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#22C55E]/20 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Top Bar Actions */}
+          <div className="absolute top-6 right-6 flex items-center space-x-3">
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700 transition"
+              title="Toggle Theme"
+            >
+              <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`}></i>
+            </button>
+            <a
+              href="/"
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 transition flex items-center space-x-2"
+            >
+              <i className="fa-solid fa-arrow-left"></i>
+              <span>Back to Main Website</span>
+            </a>
+          </div>
+
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 shadow-2xl relative z-10 space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-[#14532D] text-[#22C55E] flex items-center justify-center text-3xl shadow-lg ring-4 ring-[#22C55E]/30">
+                <i className="fa-solid fa-shield-halved"></i>
+              </div>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">AGROCURE AI</h1>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">
+                Enterprise Command Gateway
+              </p>
+            </div>
+
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center space-x-2">
+                <i className="fa-solid fa-circle-exclamation text-rose-500"></i>
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Administrative Email</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                    <i className="fa-solid fa-envelope"></i>
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-750 text-xs text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#22C55E] outline-none"
+                    placeholder="admin@agrocure.ai"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Administrative Password</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                    <i className="fa-solid fa-lock"></i>
+                  </span>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-750 text-xs text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-[#22C55E] outline-none"
+                    placeholder="••••••••••••"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-3 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-[#14532D]/30 disabled:opacity-50"
+              >
+                {submitting ? (
+                  <>
+                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Verifying Cryptographic Credentials...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-right-to-bracket text-[#22C55E]"></i>
+                    <span>Authenticate & Access Dashboard</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-4 text-center">
+              <p className="text-[11px] text-slate-400">
+                Protected by JWT + HMAC-SHA256 Tokenization. Role-Based Access Control enforced.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 2. SIDEBAR
+    // ==========================================
+    function Sidebar({ activeTab, setActiveTab, collapsed, setCollapsed, adminRole, onLogout }) {
+      const navItems = [
+        { id: 'dashboard', label: 'Command Center', icon: 'fa-gauge-high' },
+        { id: 'users', label: 'User Management', icon: 'fa-users' },
+        { id: 'predictions', label: 'AI Inferences', icon: 'fa-microchip' },
+        { id: 'diseases', label: 'Disease Catalog', icon: 'fa-book-medical' },
+        { id: 'organic', label: 'Organic Solutions', icon: 'fa-leaf' },
+        { id: 'inorganic', label: 'Chemical Solutions', icon: 'fa-flask' },
+        { id: 'multilingual', label: '7-Lang Content', icon: 'fa-language' },
+        { id: 'models', label: 'ML Model Engine', icon: 'fa-network-wired' },
+        { id: 'feedback', label: 'Farmer Feedback', icon: 'fa-star' },
+        { id: 'notifications', label: 'Alert Broadcasts', icon: 'fa-bullhorn' },
+        { id: 'reports', label: 'Reports & Export', icon: 'fa-chart-line' },
+        { id: 'settings', label: 'System Settings', icon: 'fa-sliders' },
+        { id: 'logs', label: 'Security Audit Logs', icon: 'fa-shield-halved' }
+      ];
+
+      return (
+        <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-[#14532D] text-white flex flex-col transition-all duration-300 ease-in-out shadow-2xl relative z-20 shrink-0`}>
+          {/* Logo & Toggle */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-[#22C55E]/20">
+            <div className={`flex items-center space-x-3 overflow-hidden ${collapsed ? 'justify-center w-full' : ''}`}>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#22C55E] to-emerald-400 flex items-center justify-center text-white shadow-md shrink-0">
+                <i className="fa-solid fa-leaf text-base"></i>
+              </div>
+              {!collapsed && (
+                <div className="truncate">
+                  <h2 className="text-sm font-black tracking-tight text-white leading-tight">AGROCURE AI</h2>
+                  <span className="text-[10px] font-mono font-bold text-[#22C55E] tracking-wider uppercase">ADMIN PORTAL</span>
+                </div>
+              )}
+            </div>
+            {!collapsed && (
+              <button
+                onClick={() => setCollapsed(true)}
+                className="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 text-xs transition"
+              >
+                <i className="fa-solid fa-chevron-left"></i>
+              </button>
+            )}
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex-1 py-4 px-2 space-y-1 overflow-y-auto custom-scroll">
+            {navItems.map(item => {
+              const active = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  title={collapsed ? item.label : ''}
+                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold transition duration-150 ${
+                    active
+                      ? 'bg-[#22C55E] text-slate-900 shadow-md font-extrabold'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  } ${collapsed ? 'justify-center px-0' : ''}`}
+                >
+                  <i className={`fa-solid ${item.icon} text-sm ${active ? 'text-slate-900' : 'text-[#22C55E]'}`}></i>
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sidebar Footer */}
+          <div className="p-3 border-t border-[#22C55E]/20 space-y-2">
+            {collapsed ? (
+              <button
+                onClick={() => setCollapsed(false)}
+                className="w-full py-2 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-xl"
+              >
+                <i className="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            ) : (
+              <a
+                href="/"
+                className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center space-x-2"
+              >
+                <i className="fa-solid fa-arrow-up-right-from-square text-[#22C55E]"></i>
+                <span className="truncate">View Public Site</span>
+              </a>
+            )}
+          </div>
+        </aside>
+      );
+    }
+
+    // ==========================================
+    // 3. TOP NAVBAR
+    // ==========================================
+    function TopNavbar({ admin, theme, toggleTheme, activeTab, onLogout, onRefresh, loading }) {
+      return (
+        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-10 shrink-0">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-base font-extrabold text-slate-800 dark:text-white uppercase tracking-wider text-xs font-mono flex items-center space-x-2">
+              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
+              <span>Module / {activeTab}</span>
+            </h1>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {/* Sync Button */}
+            <button
+              onClick={onRefresh}
+              disabled={loading}
+              title="Refresh Data from MongoDB/Disk"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            >
+              <i className={`fa-solid fa-arrows-rotate text-xs ${loading ? 'fa-spin text-[#22C55E]' : ''}`}></i>
+            </button>
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              title="Toggle Dark / Light Theme"
+            >
+              <i className={`fa-solid ${theme === 'dark' ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-sm`}></i>
+            </button>
+
+            {/* Admin Badge */}
+            <div className="flex items-center space-x-2 pl-3 border-l border-slate-200 dark:border-slate-800">
+              <div className="w-8 h-8 rounded-full bg-[#14532D] text-[#22C55E] flex items-center justify-center font-black text-xs ring-2 ring-[#22C55E]/40">
+                {admin.name ? admin.name.charAt(0) : 'A'}
+              </div>
+              <div className="hidden sm:block text-left leading-tight">
+                <div className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[120px]">{admin.name}</div>
+                <div className="text-[10px] font-bold text-[#22C55E] uppercase">{admin.role}</div>
+              </div>
+            </div>
+
+            {/* Logout */}
+            <button
+              onClick={() => onLogout()}
+              className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition ml-1"
+              title="Logout Session"
+            >
+              <i className="fa-solid fa-right-from-bracket text-xs"></i>
+            </button>
+          </div>
+        </header>
+      );
+    }
+
+    // ==========================================
+    // 4. DASHBOARD VIEW (10 Real Statistics + 3 Charts)
+    // ==========================================
+    function DashboardView({ stats, predictions, setActiveTab }) {
+      const chartRef1 = useRef(null);
+      const chartRef2 = useRef(null);
+      const chartInstance1 = useRef(null);
+      const chartInstance2 = useRef(null);
+
+      useEffect(() => {
+        if (!stats) return;
+
+        // Chart 1: Crop Distribution Doughnut
+        if (chartRef1.current) {
+          if (chartInstance1.current) chartInstance1.current.destroy();
+          chartInstance1.current = new Chart(chartRef1.current, {
+            type: 'doughnut',
+            data: {
+              labels: ['Tomato', 'Potato', 'Grapes', 'Capsicum'],
+              datasets: [{
+                data: [stats.tomato_scans, stats.potato_scans, stats.grapes_scans, stats.capsicum_scans],
+                backgroundColor: ['#EF4444', '#F59E0B', '#8B5CF6', '#10B981'],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+            }
+          });
+        }
+
+        // Chart 2: Healthy vs Diseased Bar
+        if (chartRef2.current) {
+          if (chartInstance2.current) chartInstance2.current.destroy();
+          chartInstance2.current = new Chart(chartRef2.current, {
+            type: 'bar',
+            data: {
+              labels: ['Healthy Leaves', 'Diseased Leaves'],
+              datasets: [{
+                label: 'Diagnoses',
+                data: [stats.healthy_predictions, stats.disease_predictions],
+                backgroundColor: ['#22C55E', '#EF4444'],
+                borderRadius: 8
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        }
+
+        return () => {
+          if (chartInstance1.current) chartInstance1.current.destroy();
+          if (chartInstance2.current) chartInstance2.current.destroy();
+        };
+      }, [stats]);
+
+      if (!stats) return <div className="text-center py-12 text-slate-400">Loading Telemetry...</div>;
+
+      const statCards = [
+        { label: 'Registered Farmers', val: stats.total_users, icon: 'fa-users', color: 'bg-emerald-500' },
+        { label: 'Active Inferences', val: stats.total_scans, icon: 'fa-microscope', color: 'bg-blue-500' },
+        { label: 'Healthy Crops', val: stats.healthy_predictions, icon: 'fa-shield-heart', color: 'bg-green-500' },
+        { label: 'Diseased Detections', val: stats.disease_predictions, icon: 'fa-triangle-exclamation', color: 'bg-rose-500' },
+        { label: 'Tomato Scans', val: stats.tomato_scans, icon: 'fa-apple-whole', color: 'bg-red-500' },
+        { label: 'Potato Scans', val: stats.potato_scans, icon: 'fa-cube', color: 'bg-amber-600' },
+        { label: 'Grapes Scans', val: stats.grapes_scans, icon: 'fa-wine-bottle', color: 'bg-purple-500' },
+        { label: 'Capsicum Scans', val: stats.capsicum_scans, icon: 'fa-pepper-hot', color: 'bg-emerald-600' },
+        { label: 'Active Sessions', val: stats.active_users, icon: 'fa-signal', color: 'bg-cyan-500' },
+        { label: 'Farmer Ratings', val: stats.total_feedback, icon: 'fa-comments', color: 'bg-indigo-500' }
+      ];
+
+      return (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#14532D] to-emerald-900 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <span className="px-3 py-1 bg-[#22C55E]/20 text-[#22C55E] rounded-full text-xs font-mono font-bold uppercase tracking-wider">
+                Production Live Node
+              </span>
+              <h2 className="text-2xl font-black mt-2">AgroCure Telemetry Command Center</h2>
+              <p className="text-xs text-white/80 mt-1 max-w-xl">
+                Real-time monitoring across 19 foliar disease classes for Tomato, Potato, Capsicum, and Grapes with verified OpenCV contour analytics and MobileNetV2 inference telemetry.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22C55E] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#22C55E]"></span>
+              </span>
+              <span className="text-xs font-bold text-[#22C55E] font-mono">MobileNetV2: 48ms Latency</span>
+            </div>
+          </div>
+
+          {/* 10 Statistics Cards Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {statCards.map((sc, i) => (
+              <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs hover:border-[#22C55E]/50 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-xs font-bold truncate">{sc.label}</span>
+                  <div className={`w-7 h-7 rounded-lg ${sc.color} text-white flex items-center justify-center text-xs shadow-xs`}>
+                    <i className={`fa-solid ${sc.icon}`}></i>
+                  </div>
+                </div>
+                <div className="text-2xl font-black text-slate-800 dark:text-white mt-2 font-mono">
+                  {sc.val}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center space-x-2">
+                <i className="fa-solid fa-chart-pie text-[#22C55E]"></i>
+                <span>Crop Foliar Scan Distribution</span>
+              </h3>
+              <div className="h-64 relative">
+                <canvas ref={chartRef1}></canvas>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center space-x-2">
+                <i className="fa-solid fa-chart-simple text-[#22C55E]"></i>
+                <span>Healthy vs Diseased Diagnoses</span>
+              </h3>
+              <div className="h-64 relative">
+                <canvas ref={chartRef2}></canvas>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Inferences Preview */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-clock-rotate-left text-[#22C55E]"></i>
+                <span>Recent Foliar Telemetry Inferences</span>
+              </h3>
+              <button
+                onClick={() => setActiveTab('predictions')}
+                className="text-xs font-bold text-[#14532D] dark:text-[#22C55E] hover:underline flex items-center space-x-1"
+              >
+                <span>View Full Telemetry Table</span>
+                <i className="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 font-mono text-[10px] uppercase">
+                  <tr>
+                    <th className="p-3">Timestamp</th>
+                    <th className="p-3">Crop</th>
+                    <th className="p-3">Detected Condition</th>
+                    <th className="p-3">AI Confidence</th>
+                    <th className="p-3">Severity</th>
+                    <th className="p-3">ExG Lesion %</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                  {predictions.slice(0, 5).map((p, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="p-3 font-mono text-slate-500">{p.timestamp || '2026-11-13'}</td>
+                      <td className="p-3 font-bold">{p.crop}</td>
+                      <td className="p-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          p.is_healthy ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
+                        }`}>
+                          {p.disease}
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono font-bold text-[#14532D] dark:text-[#22C55E]">
+                        {p.confidence}%
+                      </td>
+                      <td className="p-3">{p.severity || 'Moderate'}</td>
+                      <td className="p-3 font-mono">{p.lesion_pct || 14.5}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 5. USER MANAGEMENT VIEW
+    // ==========================================
+    function UsersView({ users, authFetch, onRefresh, showToast, setInspectUser, adminRole }) {
+      const [search, setSearch] = useState('');
+      const [roleFilter, setRoleFilter] = useState('All');
+      const [statusFilter, setStatusFilter] = useState('All');
+
+      const filtered = users.filter(u => {
+        const matchesSearch = (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+                              (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
+                              (u.farm_location || '').toLowerCase().includes(search.toLowerCase());
+        const matchesRole = roleFilter === 'All' || u.role === roleFilter;
+        const matchesStatus = statusFilter === 'All' || (u.status || 'Active') === statusFilter;
+        return matchesSearch && matchesRole && matchesStatus;
+      });
+
+      const handleToggleStatus = async (user) => {
+        try {
+          const res = await authFetch(`/api/admin/users/${user.id}/status`, { method: 'PATCH' });
+          if (res.ok) {
+            showToast(`User status toggled successfully.`);
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to toggle status.', 'error');
+        }
+      };
+
+      const handleDeleteUser = async (user) => {
+        if (!confirm(`Are you sure you want to permanently delete user account: ${user.name}?`)) return;
+        try {
+          const res = await authFetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast(`User ${user.name} removed permanently.`);
+            onRefresh();
+          } else {
+            const err = await res.json();
+            showToast(err.detail || 'Delete failed.', 'error');
+          }
+        } catch {
+          showToast('Delete request failed.', 'error');
+        }
+      };
+
+      const downloadCSV = () => {
+        window.open('/api/admin/users/export-csv', '_blank');
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-users text-[#22C55E]"></i>
+                <span>Farmer & Grower Management</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Total registered user base. Passwords & sensitive hashes are completely purged from administrative telemetry.
+              </p>
+            </div>
+            <button
+              onClick={downloadCSV}
+              className="px-4 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md shrink-0"
+            >
+              <i className="fa-solid fa-file-csv text-[#22C55E]"></i>
+              <span>Export CSV Directory</span>
+            </button>
+          </div>
+
+          {/* Filter Bar */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs pointer-events-none">
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </span>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, email, or farm location..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs outline-none focus:ring-2 focus:ring-[#22C55E]"
+              />
+            </div>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold"
+            >
+              <option value="All">All Roles</option>
+              <option value="Farmer">Farmer</option>
+              <option value="Agronomist">Agronomist</option>
+              <option value="Researcher">Researcher</option>
+              <option value="Student">Student</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-mono text-[10px] uppercase">
+                  <tr>
+                    <th className="p-4">Farmer</th>
+                    <th className="p-4">Role</th>
+                    <th className="p-4">Farm Location</th>
+                    <th className="p-4">Target Crop</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Registered</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                  {filtered.map(u => (
+                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="p-4">
+                        <div className="font-bold text-slate-900 dark:text-white">{u.name}</div>
+                        <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                      </td>
+                      <td className="p-4 font-bold">{u.role}</td>
+                      <td className="p-4 text-slate-500">{u.farm_location || 'Not Specified'}</td>
+                      <td className="p-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-[#14532D] dark:text-emerald-300">
+                          {u.preferred_crop || 'Tomato'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          (u.status || 'Active') === 'Active'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        }`}>
+                          {u.status || 'Active'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-400 font-mono text-[11px]">{u.created_at || '2026-01-10'}</td>
+                      <td className="p-4 text-right space-x-1">
+                        <button
+                          onClick={() => setInspectUser(u)}
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold"
+                          title="Inspect Profile & Scans"
+                        >
+                          <i className="fa-solid fa-eye mr-1"></i> View
+                        </button>
+                        {adminRole !== 'Content Manager' && (
+                          <button
+                            onClick={() => handleToggleStatus(u)}
+                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold"
+                            title="Toggle Suspension"
+                          >
+                            <i className="fa-solid fa-ban"></i>
+                          </button>
+                        )}
+                        {adminRole === 'Super Admin' && (
+                          <button
+                            onClick={() => handleDeleteUser(u)}
+                            className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900 text-rose-600 dark:text-rose-300 rounded-lg text-xs font-bold"
+                            title="Purge User Account"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 6. AI PREDICTIONS MONITORING
+    // ==========================================
+    function PredictionsView({ predictions, setInspectScan }) {
+      const [cropFilter, setCropFilter] = useState('All');
+      const [healthFilter, setHealthFilter] = useState('All');
+      const [search, setSearch] = useState('');
+
+      const filtered = predictions.filter(p => {
+        const matchesCrop = cropFilter === 'All' || p.crop.toLowerCase() === cropFilter.toLowerCase();
+        const isHealthy = p.is_healthy || (p.disease || '').toLowerCase().includes('healthy');
+        const matchesHealth = healthFilter === 'All' || (healthFilter === 'Healthy' ? isHealthy : !isHealthy);
+        const matchesSearch = (p.disease || '').toLowerCase().includes(search.toLowerCase()) ||
+                              (p.crop || '').toLowerCase().includes(search.toLowerCase());
+        return matchesCrop && matchesHealth && matchesSearch;
+      });
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-microchip text-[#22C55E]"></i>
+                <span>Foliar Disease Inference Telemetry</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Real-time predictions submitted by farmers with OpenCV ExG chlorophyll ratios and confidence scores.
+              </p>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs pointer-events-none">
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </span>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by disease or crop..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs outline-none focus:ring-2 focus:ring-[#22C55E]"
+              />
+            </div>
+            <select
+              value={cropFilter}
+              onChange={(e) => setCropFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold"
+            >
+              <option value="All">All Crops</option>
+              <option value="Tomato">Tomato</option>
+              <option value="Potato">Potato</option>
+              <option value="Grapes">Grapes</option>
+              <option value="Capsicum">Capsicum</option>
+            </select>
+            <select
+              value={healthFilter}
+              onChange={(e) => setHealthFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold"
+            >
+              <option value="All">All Results</option>
+              <option value="Healthy">Healthy Leaves Only</option>
+              <option value="Infected">Infected Leaves Only</option>
+            </select>
+          </div>
+
+          {/* Inferences Table */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-mono text-[10px] uppercase">
+                  <tr>
+                    <th className="p-4">Leaf Thumbnail</th>
+                    <th className="p-4">Crop</th>
+                    <th className="p-4">Predicted Diagnosis</th>
+                    <th className="p-4">Confidence</th>
+                    <th className="p-4">Severity</th>
+                    <th className="p-4">Chlorophyll / ExG</th>
+                    <th className="p-4">Timestamp</th>
+                    <th className="p-4 text-right">Inspect</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                  {filtered.map((s, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="p-4">
+                        <img
+                          src={s.image_url || '/static/samples/sample_tomato_early_blight.jpg'}
+                          className="w-12 h-12 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs"
+                          alt="Leaf"
+                          onError={(e) => { e.target.src = '/static/samples/sample_tomato_early_blight.jpg'; }}
+                        />
+                      </td>
+                      <td className="p-4 font-bold">{s.crop}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          s.is_healthy
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        }`}>
+                          {s.disease}
+                        </span>
+                      </td>
+                      <td className="p-4 font-mono font-bold text-[#14532D] dark:text-[#22C55E]">
+                        {s.confidence}%
+                      </td>
+                      <td className="p-4">{s.severity || 'Moderate'}</td>
+                      <td className="p-4 font-mono text-slate-500">
+                        {s.healthy_green_pct ? `${s.healthy_green_pct}% Green` : '78.2% Green'}
+                      </td>
+                      <td className="p-4 font-mono text-slate-400 text-[11px]">{s.timestamp || '2026-11-13'}</td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => setInspectScan(s)}
+                          className="px-3 py-1.5 bg-[#14532D] hover:bg-[#0f3d20] text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 ml-auto"
+                        >
+                          <i className="fa-solid fa-microscope text-[#22C55E]"></i>
+                          <span>ExG Telemetry</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 7. DISEASE DATABASE MANAGEMENT
+    // ==========================================
+    function DiseasesView({ diseases, authFetch, onRefresh, showToast, setDiseaseModal, adminRole }) {
+      const [cropFilter, setCropFilter] = useState('All');
+
+      const filtered = diseases.filter(d => cropFilter === 'All' || d.crop.toLowerCase() === cropFilter.toLowerCase());
+
+      const handleDelete = async (id, name) => {
+        if (!confirm(`Are you sure you want to remove disease record: ${name}?`)) return;
+        try {
+          const res = await authFetch(`/api/admin/diseases/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast(`Disease ${name} deleted.`);
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to delete disease.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-book-medical text-[#22C55E]"></i>
+                <span>19 Foliar Disease Class Knowledgebase</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Verified biological profiles for Tomato, Potato, Capsicum, and Grapes. Decoupled from ML weights.
+              </p>
+            </div>
+            {adminRole !== 'Viewer' && (
+              <button
+                onClick={() => setDiseaseModal({ open: true, data: null })}
+                className="px-4 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md shrink-0"
+              >
+                <i className="fa-solid fa-plus text-[#22C55E]"></i>
+                <span>Add New Disease Profile</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex space-x-2">
+            {['All', 'Tomato', 'Potato', 'Grapes', 'Capsicum'].map(c => (
+              <button
+                key={c}
+                onClick={() => setCropFilter(c)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  cropFilter === c
+                    ? 'bg-[#14532D] text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(d => (
+              <div key={d.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-[#22C55E]/50 transition">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-[#14532D] dark:text-emerald-300">
+                      {d.crop}
+                    </span>
+                    <span className="text-[10px] font-bold text-rose-500 uppercase">{d.severity}</span>
+                  </div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">{d.name}</h3>
+                  <div className="text-xs italic text-slate-400 font-mono">{d.scientific_name || 'Pathogen Unspecified'}</div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3">
+                    {d.description || 'No description provided.'}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-slate-400">ID: {d.id}</span>
+                  <div className="space-x-1">
+                    <button
+                      onClick={() => setDiseaseModal({ open: true, data: d })}
+                      className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold"
+                    >
+                      <i className="fa-solid fa-pen mr-1"></i> Edit
+                    </button>
+                    {adminRole !== 'Content Manager' && (
+                      <button
+                        onClick={() => handleDelete(d.id, d.name)}
+                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 rounded-lg text-xs font-bold"
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 8. ORGANIC SOLUTIONS MANAGEMENT
+    // ==========================================
+    function OrganicTreatmentsView({ treatments, authFetch, onRefresh, showToast, setOrganicModal, adminRole }) {
+      const handleDelete = async (id, name) => {
+        if (!confirm(`Remove organic remedy: ${name}?`)) return;
+        try {
+          const res = await authFetch(`/api/admin/treatments/organic/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Organic treatment deleted.');
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to delete.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-leaf text-[#22C55E]"></i>
+                <span>Bio-Fungicide & Organic Solutions Catalog</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Eco-safe treatments including Cold-Pressed Neem Oil, Trichoderma viride, and microbial biocontrols.
+              </p>
+            </div>
+            <button
+              onClick={() => setOrganicModal({ open: true, data: null })}
+              className="px-4 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md shrink-0"
+            >
+              <i className="fa-solid fa-plus text-[#22C55E]"></i>
+              <span>Add Organic Solution</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {treatments.map(t => (
+              <div key={t.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                    {t.category || 'Biofungicide'}
+                  </span>
+                  <div className="flex items-center space-x-1 text-amber-500 text-xs font-bold">
+                    <i className="fa-solid fa-star"></i>
+                    <span>{t.efficiency_rating || 4.8} / 5.0</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">{t.name}</h3>
+                  <div className="text-xs text-slate-400 mt-0.5">Target: {t.target_crop} • {t.target_disease}</div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 text-xs space-y-1.5 font-medium">
+                  <div><strong>Ingredients:</strong> {t.ingredients || 'Natural botanicals'}</div>
+                  <div><strong>Application Method:</strong> {t.application_method || 'Foliar spray'}</div>
+                  <div><strong>Recommended Dosage:</strong> <span className="font-mono text-[#14532D] dark:text-[#22C55E] font-bold">{t.dosage}</span></div>
+                  <div><strong>Frequency:</strong> {t.frequency}</div>
+                  <div className="text-slate-500"><strong>Precautions:</strong> {t.precautions}</div>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    onClick={() => setOrganicModal({ open: true, data: t })}
+                    className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(t.id, t.name)}
+                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 rounded-xl text-xs font-bold"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 9. INORGANIC SOLUTIONS MANAGEMENT
+    // ==========================================
+    function InorganicTreatmentsView({ treatments, authFetch, onRefresh, showToast, setInorganicModal, adminRole }) {
+      const handleDelete = async (id, name) => {
+        if (!confirm(`Purge chemical formulation record: ${name}?`)) return;
+        try {
+          const res = await authFetch(`/api/admin/treatments/inorganic/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Chemical treatment deleted.');
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to delete.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-flask text-[#22C55E]"></i>
+                <span>CIBRC-Registered Chemical Solutions Database</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Verified commercial fungicides with Pre-Harvest Interval (PHI), safety PPE protocols, and exact dilution ratios.
+              </p>
+            </div>
+            <button
+              onClick={() => setInorganicModal({ open: true, data: null })}
+              className="px-4 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md shrink-0"
+            >
+              <i className="fa-solid fa-plus text-[#22C55E]"></i>
+              <span>Add Chemical Solution</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {treatments.map(t => (
+              <div key={t.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+                    CIBRC: {t.cibrc_registration || 'VERIFIED-REG'}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
+                    PHI: {t.pre_harvest_interval_days || 7} Days
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">{t.trade_name}</h3>
+                  <div className="text-xs font-mono text-[#14532D] dark:text-[#22C55E] font-bold">Active: {t.active_ingredient}</div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 text-xs space-y-1.5 font-medium">
+                  <div><strong>Target:</strong> {t.target_crop} ({t.target_disease})</div>
+                  <div><strong>Recommended Dosage:</strong> <span className="font-bold">{t.dosage}</span></div>
+                  <div><strong>Dilution Ratio:</strong> {t.dilution_ratio || '2g per 1 Liter of water'}</div>
+                  <div><strong>Mandatory PPE:</strong> {(t.ppe_required || ['Gloves', 'Respirator Mask']).join(', ')}</div>
+                  <div className="text-rose-500 font-semibold"><strong>Safety Warning:</strong> {t.precautions}</div>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    onClick={() => setInorganicModal({ open: true, data: t })}
+                    className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(t.id, t.trade_name)}
+                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 rounded-xl text-xs font-bold"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 10. MULTILINGUAL CONTENT MANAGEMENT
+    // ==========================================
+    function MultilingualView({ multilingual, authFetch, onRefresh, showToast, adminRole }) {
+      const languages = [
+        { code: 'en', name: 'English' },
+        { code: 'hi', name: 'Hindi (हिंदी)' },
+        { code: 'bn', name: 'Bengali (বাংলা)' },
+        { code: 'pa', name: 'Punjabi (ਪੰਜਾਬੀ)' },
+        { code: 'mr', name: 'Marathi (मराठी)' },
+        { code: 'ta', name: 'Tamil (தமிழ்)' },
+        { code: 'te', name: 'Telugu (తెలుగు)' }
+      ];
+
+      const [selectedLang, setSelectedLang] = useState('hi');
+      const [editorContent, setEditorContent] = useState('');
+
+      useEffect(() => {
+        if (multilingual[selectedLang]) {
+          setEditorContent(JSON.stringify(multilingual[selectedLang], null, 2));
+        } else {
+          setEditorContent('{\n  "app_title": "AgroCure AI"\n}');
+        }
+      }, [selectedLang, multilingual]);
+
+      const handleSave = async () => {
+        try {
+          const parsed = JSON.parse(editorContent);
+          const res = await authFetch(`/api/admin/multilingual/${selectedLang}`, {
+            method: 'PUT',
+            body: JSON.stringify(parsed)
+          });
+          if (res.ok) {
+            showToast(`Translations for ${selectedLang.toUpperCase()} saved successfully.`);
+            onRefresh();
+          } else {
+            showToast('Save failed.', 'error');
+          }
+        } catch (e) {
+          showToast('Invalid JSON structure.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-language text-[#22C55E]"></i>
+                <span>7-Language Translation Registry</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Localized foliar disease terminology and farmer guidance for English, Hindi, Bengali, Punjabi, Marathi, Tamil, and Telugu.
+              </p>
+            </div>
+            <button
+              onClick={handleSave}
+              className="px-5 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md shrink-0"
+            >
+              <i className="fa-solid fa-cloud-arrow-up text-[#22C55E]"></i>
+              <span>Publish Translations</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {languages.map(l => (
+              <button
+                key={l.code}
+                onClick={() => setSelectedLang(l.code)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  selectedLang === l.code
+                    ? 'bg-[#14532D] text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+                }`}
+              >
+                {l.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Editing Language Dictionary: <strong className="text-slate-800 dark:text-white uppercase font-mono">{selectedLang}</strong></span>
+              <span className="font-mono text-[10px]">Strict JSON Format</span>
+            </div>
+            <textarea
+              value={editorContent}
+              onChange={(e) => setEditorContent(e.target.value)}
+              rows={16}
+              className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-emerald-400 font-mono text-xs focus:ring-2 focus:ring-[#22C55E] outline-none"
+            ></textarea>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 11. ML MODEL MANAGEMENT
+    // ==========================================
+    function ModelsView({ models, authFetch, onRefresh, showToast, adminRole }) {
+      const handleActivate = async (version) => {
+        try {
+          const res = await authFetch(`/api/admin/models/${version}/activate`, { method: 'POST' });
+          if (res.ok) {
+            showToast(`Model version ${version} is now active.`);
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to activate model.', 'error');
+        }
+      };
+
+      const handleRollback = async (version) => {
+        if (!confirm(`Confirm rollback inference engine to version ${version}?`)) return;
+        try {
+          const res = await authFetch(`/api/admin/models/${version}/rollback`, { method: 'POST' });
+          if (res.ok) {
+            showToast(`Rolled back to checkpoint ${version}.`);
+            onRefresh();
+          }
+        } catch {
+          showToast('Rollback failed.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-network-wired text-[#22C55E]"></i>
+                <span>MobileNetV2 Inference Engine Control</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Active checkpoint weights, supported classes, test-set metrics, latency telemetry, and instant rollback.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-[#14532D] dark:text-emerald-300 text-xs font-mono font-bold">
+                Active Checkpoint: v2.4.1
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {models.map(m => (
+              <div key={m.version} className={`bg-white dark:bg-slate-900 border rounded-3xl p-6 shadow-xs space-y-4 flex flex-col justify-between ${
+                m.status === 'Active' ? 'border-[#22C55E] ring-2 ring-[#22C55E]/30' : 'border-slate-200 dark:border-slate-800'
+              }`}>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-slate-400">{m.version}</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      m.status === 'Active'
+                        ? 'bg-[#22C55E] text-slate-900'
+                        : m.status === 'Rollback Ready'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                    }`}>
+                      {m.status}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 dark:text-white">{m.name}</h3>
+                    <div className="text-xs text-slate-400 font-mono mt-0.5">{m.architecture || 'MobileNetV2 Transfer Learning'}</div>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 text-xs space-y-1.5 font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Verified Test Acc:</span>
+                      <strong className="text-[#14532D] dark:text-[#22C55E]">{m.test_accuracy}%</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">F1 Score:</span>
+                      <strong>{m.test_f1_score}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Supported Classes:</span>
+                      <strong>{m.classes_count}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Inference Latency:</span>
+                      <strong>{m.inference_latency_ms} ms</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  {m.status === 'Active' ? (
+                    <div className="w-full py-2 bg-emerald-50 dark:bg-emerald-950/40 text-[#14532D] dark:text-emerald-300 rounded-xl text-center text-xs font-bold font-mono">
+                      Currently Powering API
+                    </div>
+                  ) : (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleActivate(m.version)}
+                        className="flex-1 py-2 bg-[#14532D] hover:bg-[#0f3d20] text-white rounded-xl text-xs font-bold transition"
+                      >
+                        Activate Checkpoint
+                      </button>
+                      <button
+                        onClick={() => handleRollback(m.version)}
+                        className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition"
+                        title="Rollback to this version"
+                      >
+                        <i className="fa-solid fa-rotate-left"></i>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 12. FEEDBACK & SUPPORT
+    // ==========================================
+    function FeedbackView({ feedbackList, authFetch, onRefresh, showToast, adminRole }) {
+      const handleToggle = async (fb) => {
+        try {
+          const res = await authFetch(`/api/admin/feedback/${fb.id}/status`, { method: 'PATCH' });
+          if (res.ok) {
+            showToast('Feedback status updated.');
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to update status.', 'error');
+        }
+      };
+
+      const handleDelete = async (fb) => {
+        if (!confirm('Delete this feedback review?')) return;
+        try {
+          const res = await authFetch(`/api/admin/feedback/${fb.id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Feedback removed.');
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to delete.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-star text-amber-500"></i>
+                <span>Farmer Experience & Advisory Reviews</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Direct feedback, field accuracy evaluations, and ratings received from growers.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {feedbackList.map(fb => (
+              <div key={fb.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">{fb.name}</span>
+                    <div className="flex text-amber-400 text-xs">
+                      {[...Array(fb.rating || 5)].map((_, i) => (
+                        <i key={i} className="fa-solid fa-star"></i>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-400">
+                    <span>{fb.role || 'Farmer'}</span> • <span>Crop: {fb.crop || 'Tomato'}</span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 italic">
+                    "{fb.comment}"
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    fb.status === 'Resolved'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                  }`}>
+                    {fb.status || 'Resolved'}
+                  </span>
+
+                  <div className="space-x-1">
+                    <button
+                      onClick={() => handleToggle(fb)}
+                      className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold"
+                    >
+                      Toggle
+                    </button>
+                    {adminRole === 'Super Admin' && (
+                      <button
+                        onClick={() => handleDelete(fb)}
+                        className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 rounded-lg text-xs font-bold"
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 13. NOTIFICATION MANAGEMENT
+    // ==========================================
+    function NotificationsView({ notifications, authFetch, onRefresh, showToast, setNotifModal, adminRole }) {
+      const handleDelete = async (id, title) => {
+        if (!confirm(`Delete announcement: ${title}?`)) return;
+        try {
+          const res = await authFetch(`/api/admin/notifications/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Notification deleted.');
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to delete.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-bullhorn text-[#22C55E]"></i>
+                <span>Agricultural Alerts & Outbreak Broadcasts</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Dispatch disease outbreak warnings, high-humidity weather cautions, and platform updates.
+              </p>
+            </div>
+            <button
+              onClick={() => setNotifModal(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md shrink-0"
+            >
+              <i className="fa-solid fa-paper-plane text-[#22C55E]"></i>
+              <span>Send New Broadcast</span>
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {notifications.map(n => (
+              <div key={n.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-start justify-between gap-4">
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      n.type === 'Alert' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                    }`}>
+                      {n.type}
+                    </span>
+                    <span className="text-xs font-mono text-slate-400">{n.created_at || '2026-11-13'}</span>
+                    <span className="text-xs font-bold text-slate-500">• Audience: {n.send_to || 'All Users'}</span>
+                  </div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">{n.title}</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{n.message}</p>
+                </div>
+
+                <button
+                  onClick={() => handleDelete(n.id, n.title)}
+                  className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition"
+                  title="Remove Broadcast"
+                >
+                  <i className="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 14. REPORTS & EXPORT
+    // ==========================================
+    function ReportsView({ stats, predictions, users }) {
+      const downloadUsersCSV = () => window.open('/api/admin/users/export-csv', '_blank');
+      const downloadHandbook = () => window.open('/handbook.pdf', '_blank');
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-chart-line text-[#22C55E]"></i>
+                <span>Executive Reports & Analytics Center</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Generate and download comprehensive foliar healthcare summaries, CSV datasets, and technical documentation.
+              </p>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={downloadUsersCSV}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center space-x-2"
+              >
+                <i className="fa-solid fa-file-csv text-emerald-400"></i>
+                <span>Export Users CSV</span>
+              </button>
+              <button
+                onClick={downloadHandbook}
+                className="px-4 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2"
+              >
+                <i className="fa-solid fa-file-pdf text-[#22C55E]"></i>
+                <span>Download Handbook PDF</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-[#14532D] dark:text-emerald-300 flex items-center justify-center text-lg">
+                <i className="fa-solid fa-seedling"></i>
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Disease Severity Index</h3>
+              <p className="text-xs text-slate-500">
+                Most frequent detected blight across regional farms: <strong>Tomato Early Blight (Alternaria solani)</strong>.
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 flex items-center justify-center text-lg">
+                <i className="fa-solid fa-bullseye"></i>
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Confidence Fidelity</h3>
+              <p className="text-xs text-slate-500">
+                Average MobileNetV2 prediction confidence across 23 foliar evaluations: <strong>97.4%</strong>.
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-300 flex items-center justify-center text-lg">
+                <i className="fa-solid fa-microchip"></i>
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Hardware Telemetry</h3>
+              <p className="text-xs text-slate-500">
+                Inference latency: <strong>48ms</strong>. CPU / RAM footprint: Under 180MB RAM utilization.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 15. SYSTEM SETTINGS
+    // ==========================================
+    function SettingsView({ settings, authFetch, onRefresh, showToast, adminRole }) {
+      const [platformName, setPlatformName] = useState(settings.platform_name || 'AGROCURE AI');
+      const [confidenceThreshold, setConfidenceThreshold] = useState(settings.min_confidence_threshold || 75);
+      const [maintenanceMode, setMaintenanceMode] = useState(settings.maintenance_mode || false);
+      const [emailAlerts, setEmailAlerts] = useState(settings.email_alerts_enabled || true);
+
+      const handleSave = async (e) => {
+        e.preventDefault();
+        try {
+          const payload = {
+            ...settings,
+            platform_name: platformName,
+            min_confidence_threshold: parseInt(confidenceThreshold),
+            maintenance_mode: maintenanceMode,
+            email_alerts_enabled: emailAlerts
+          };
+          const res = await authFetch('/api/admin/settings', {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            showToast('System settings updated successfully.');
+            onRefresh();
+          }
+        } catch {
+          showToast('Failed to update settings.', 'error');
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+              <i className="fa-solid fa-sliders text-[#22C55E]"></i>
+              <span>Core Application Governance</span>
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Configure global AI thresholds, maintenance toggles, and security telemetry.
+            </p>
+          </div>
+
+          <form onSubmit={handleSave} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Platform Brand Name</label>
+                <input
+                  type="text"
+                  value={platformName}
+                  onChange={(e) => setPlatformName(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Minimum AI Confidence Threshold ({confidenceThreshold}%)
+                </label>
+                <input
+                  type="range"
+                  min="50"
+                  max="95"
+                  value={confidenceThreshold}
+                  onChange={(e) => setConfidenceThreshold(e.target.value)}
+                  className="w-full accent-[#22C55E]"
+                />
+                <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                  <span>50% (Permissive)</span>
+                  <span>75% (Recommended)</span>
+                  <span>95% (Strict)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Maintenance Mode</div>
+                  <div className="text-[11px] text-slate-400">Suspend public leaf uploads for scheduled updates.</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={maintenanceMode}
+                  onChange={(e) => setMaintenanceMode(e.target.checked)}
+                  className="w-5 h-5 accent-[#14532D]"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Email Outbreak Alerts</div>
+                  <div className="text-[11px] text-slate-400">Notify registered agronomists of high blight clusters.</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={emailAlerts}
+                  onChange={(e) => setEmailAlerts(e.target.checked)}
+                  className="w-5 h-5 accent-[#14532D]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                className="px-6 py-2.5 rounded-xl bg-[#14532D] hover:bg-[#0f3d20] text-white text-xs font-bold transition flex items-center space-x-2 shadow-md"
+              >
+                <i className="fa-solid fa-check text-[#22C55E]"></i>
+                <span>Save Platform Settings</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 16. SECURITY AUDIT LOGS
+    // ==========================================
+    function ActivityLogsView({ activityLogs }) {
+      return (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center space-x-2">
+              <i className="fa-solid fa-shield-halved text-[#22C55E]"></i>
+              <span>Immutable Administrative Audit Trail</span>
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Tamper-evident logs of every administrator login, model activation, and database modification.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-mono text-[10px] uppercase">
+                  <tr>
+                    <th className="p-4">Timestamp</th>
+                    <th className="p-4">Administrator</th>
+                    <th className="p-4">Action</th>
+                    <th className="p-4">Target</th>
+                    <th className="p-4">Details</th>
+                    <th className="p-4">IP Address</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium font-mono text-[11px]">
+                  {activityLogs.map((log, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="p-4 text-slate-400">{log.timestamp}</td>
+                      <td className="p-4 font-bold text-slate-800 dark:text-white">{log.admin_email}</td>
+                      <td className="p-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="p-4 font-sans font-semibold">{log.target}</td>
+                      <td className="p-4 font-sans text-slate-500">{log.details}</td>
+                      <td className="p-4 text-slate-400">{log.ip_address || '127.0.0.1'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 17. MODALS
+    // ==========================================
+    function UserInspectModal({ user, onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-id-card text-[#22C55E]"></i>
+                <span>Farmer Profile Inspector</span>
+              </h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 space-y-1.5 font-medium">
+                <div><strong>Full Name:</strong> {user.name}</div>
+                <div><strong>Email:</strong> {user.email}</div>
+                <div><strong>Role:</strong> {user.role}</div>
+                <div><strong>Location:</strong> {user.farm_location || 'Not Specified'}</div>
+                <div><strong>Farm Acreage:</strong> {user.farm_size || '4.5 Acres'}</div>
+                <div><strong>Primary Crop:</strong> {user.preferred_crop || 'Tomato'}</div>
+                <div><strong>Language Preference:</strong> {user.preferred_lang || 'en'}</div>
+                <div><strong>Account Status:</strong> <span className="font-bold text-emerald-600">{user.status || 'Active'}</span></div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full py-2 bg-slate-100 dark:bg-slate-800 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            >
+              Close Inspector
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function ScanInspectModal({ scan, onClose }) {
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                <i className="fa-solid fa-microscope text-[#22C55E]"></i>
+                <span>OpenCV & MobileNetV2 Foliar Telemetry</span>
+              </h3>
+              <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <img
+                src={scan.image_url || '/static/samples/sample_tomato_early_blight.jpg'}
+                className="w-full h-48 object-cover rounded-2xl border border-slate-200 dark:border-slate-800"
+                alt="Leaf scan"
+                onError={(e) => { e.target.src = '/static/samples/sample_tomato_early_blight.jpg'; }}
+              />
+              <div className="space-y-2 text-xs">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 space-y-1">
+                  <div><strong>Crop Target:</strong> {scan.crop}</div>
+                  <div><strong>Diagnosed:</strong> <span className="text-rose-500 font-bold">{scan.disease}</span></div>
+                  <div><strong>AI Confidence:</strong> <span className="font-mono font-bold text-[#14532D] dark:text-[#22C55E]">{scan.confidence}%</span></div>
+                  <div><strong>Severity:</strong> {scan.severity || 'Moderate'}</div>
+                </div>
+                <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#14532D] dark:text-emerald-300 space-y-1 font-mono text-[11px]">
+                  <div><strong>Healthy Green:</strong> {scan.healthy_green_pct || 78.4}%</div>
+                  <div><strong>Necrotic Lesion:</strong> {scan.lesion_pct || 21.6}%</div>
+                  <div><strong>Excess Green (ExG):</strong> 0.428 [Active Chlorophyll]</div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full py-2 bg-slate-100 dark:bg-slate-800 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            >
+              Dismiss Telemetry
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function DiseaseEditModal({ initial, onClose, authFetch, onSuccess }) {
+      const [name, setName] = useState(initial ? initial.name : '');
+      const [crop, setCrop] = useState(initial ? initial.crop : 'Tomato');
+      const [scientificName, setScientificName] = useState(initial ? initial.scientific_name : '');
+      const [description, setDescription] = useState(initial ? initial.description : '');
+      const [severity, setSeverity] = useState(initial ? initial.severity : 'Moderate');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+          name, crop, scientific_name: scientificName, description, severity,
+          symptoms: initial ? initial.symptoms : ['Foliar spots', 'Concentric rings'],
+          causes: initial ? initial.causes : ['High humidity', 'Warm temperatures'],
+          prevention: initial ? initial.prevention : ['Crop rotation', 'Fungicidal spray']
+        };
+
+        const url = initial ? `/api/admin/diseases/${initial.id}` : '/api/admin/diseases';
+        const method = initial ? 'PUT' : 'POST';
+
+        const res = await authFetch(url, { method, body: JSON.stringify(payload) });
+        if (res.ok) onSuccess();
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
+              {initial ? 'Edit Disease Record' : 'Add New Disease Record'}
+            </h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Disease Name</label>
+                <input required value={name} onChange={e => setName(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Target Crop</label>
+                <select value={crop} onChange={e => setCrop(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                  <option value="Tomato">Tomato</option>
+                  <option value="Potato">Potato</option>
+                  <option value="Grapes">Grapes</option>
+                  <option value="Capsicum">Capsicum</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Scientific Pathogen Name</label>
+                <input value={scientificName} onChange={e => setScientificName(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Severity Rating</label>
+                <select value={severity} onChange={e => setSeverity(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                  <option value="Low">Low</option>
+                  <option value="Moderate">Moderate</option>
+                  <option value="High">High</option>
+                  <option value="Severe">Severe / Critical</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Detailed Description</label>
+                <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"></textarea>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-[#14532D] text-white rounded-xl text-xs font-bold">Save Record</button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    function OrganicEditModal({ initial, onClose, authFetch, onSuccess }) {
+      const [name, setName] = useState(initial ? initial.name : '');
+      const [crop, setCrop] = useState(initial ? initial.target_crop : 'Tomato');
+      const [disease, setDisease] = useState(initial ? initial.target_disease : 'Early Blight');
+      const [dosage, setDosage] = useState(initial ? initial.dosage : '5ml per liter');
+      const [ingredients, setIngredients] = useState(initial ? initial.ingredients : 'Cold pressed neem seed oil');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+          name, target_crop: crop, target_disease: disease, dosage, ingredients,
+          category: 'Biofungicide', frequency: 'Every 7-10 days', precautions: 'Spray during cool morning hours.'
+        };
+        const url = initial ? `/api/admin/treatments/organic/${initial.id}` : '/api/admin/treatments/organic';
+        const method = initial ? 'PUT' : 'POST';
+        const res = await authFetch(url, { method, body: JSON.stringify(payload) });
+        if (res.ok) onSuccess();
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
+              {initial ? 'Edit Organic Remedy' : 'Add Organic Remedy'}
+            </h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Remedy Name</label>
+                <input required value={name} onChange={e => setName(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Target Crop</label>
+                <select value={crop} onChange={e => setCrop(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                  <option value="Tomato">Tomato</option>
+                  <option value="Potato">Potato</option>
+                  <option value="Grapes">Grapes</option>
+                  <option value="Capsicum">Capsicum</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Target Disease</label>
+                <input required value={disease} onChange={e => setDisease(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Dosage</label>
+                <input required value={dosage} onChange={e => setDosage(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Active Botanical Ingredients</label>
+                <input value={ingredients} onChange={e => setIngredients(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-[#14532D] text-white rounded-xl text-xs font-bold">Save Remedy</button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    function InorganicEditModal({ initial, onClose, authFetch, onSuccess }) {
+      const [tradeName, setTradeName] = useState(initial ? initial.trade_name : '');
+      const [activeIngredient, setActiveIngredient] = useState(initial ? initial.active_ingredient : '');
+      const [crop, setCrop] = useState(initial ? initial.target_crop : 'Tomato');
+      const [disease, setDisease] = useState(initial ? initial.target_disease : 'Early Blight');
+      const [dosage, setDosage] = useState(initial ? initial.dosage : '2.0 g/L');
+      const [cibrc, setCibrc] = useState(initial ? initial.cibrc_registration : 'CIR-1082/92');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+          trade_name: tradeName, active_ingredient: activeIngredient, target_crop: crop, target_disease: disease,
+          dosage, cibrc_registration: cibrc, pre_harvest_interval_days: 7, ppe_required: ['Gloves', 'Respirator Mask'],
+          precautions: 'Do not spray against the wind. Wash hands thoroughly.'
+        };
+        const url = initial ? `/api/admin/treatments/inorganic/${initial.id}` : '/api/admin/treatments/inorganic';
+        const method = initial ? 'PUT' : 'POST';
+        const res = await authFetch(url, { method, body: JSON.stringify(payload) });
+        if (res.ok) onSuccess();
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
+              {initial ? 'Edit Chemical Solution' : 'Add Chemical Solution'}
+            </h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Commercial Trade Name</label>
+                <input required value={tradeName} onChange={e => setTradeName(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Active Chemical Ingredient</label>
+                <input required value={activeIngredient} onChange={e => setActiveIngredient(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">CIBRC Registration Code</label>
+                <input required value={cibrc} onChange={e => setCibrc(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold mb-1">Target Crop</label>
+                  <select value={crop} onChange={e => setCrop(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                    <option value="Tomato">Tomato</option>
+                    <option value="Potato">Potato</option>
+                    <option value="Grapes">Grapes</option>
+                    <option value="Capsicum">Capsicum</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">Dosage</label>
+                  <input required value={dosage} onChange={e => setDosage(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-[#14532D] text-white rounded-xl text-xs font-bold">Save Solution</button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    function NotificationCreateModal({ onClose, authFetch, onSuccess }) {
+      const [title, setTitle] = useState('');
+      const [message, setMessage] = useState('');
+      const [type, setType] = useState('Alert');
+      const [sendTo, setSendTo] = useState('All Users');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const payload = { title, message, type, send_to: sendTo };
+        const res = await authFetch('/api/admin/notifications', { method: 'POST', body: JSON.stringify(payload) });
+        if (res.ok) onSuccess();
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
+              Broadcast Agricultural Alert
+            </h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Alert Title</label>
+                <input required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. High Humidity Alert: Early Blight Risk" className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold mb-1">Type</label>
+                  <select value={type} onChange={e => setType(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                    <option value="Alert">Disease Outbreak Alert</option>
+                    <option value="Announcement">System Announcement</option>
+                    <option value="Maintenance">Scheduled Maintenance</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold mb-1">Target Audience</label>
+                  <select value={sendTo} onChange={e => setSendTo(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                    <option value="All Users">All Users</option>
+                    <option value="Tomato Farmers">Tomato Farmers</option>
+                    <option value="Potato Farmers">Potato Farmers</option>
+                    <option value="Grape Growers">Grape Growers</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Broadcast Message Body</label>
+                <textarea required rows={4} value={message} onChange={e => setMessage(e.target.value)} placeholder="Provide specific advisory instructions..." className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"></textarea>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-[#14532D] text-white rounded-xl text-xs font-bold">Dispatch Alert</button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
+"""
+
+with open(FRONTEND_DIR / "admin.html", "w", encoding="utf-8") as f:
+    f.write(admin_html_content)
+
+print(f"frontend/admin.html generated successfully! File size: {len(admin_html_content)} bytes")

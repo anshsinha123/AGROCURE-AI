@@ -1,480 +1,124 @@
-# AGROCURE AI – COMPLETE ADMIN PANEL DEVELOPMENT PROMPT
-
-Act as a senior full-stack developer, UI/UX designer, database architect, and security engineer.
-
-I already have a project called AGROCURE AI, an AI-powered plant disease detection website that detects diseases in Tomato, Potato, Capsicum, and Grapes using leaf images.
-
-I want you to develop a complete, professional, fully functional ADMIN PANEL for this existing application.
-
-IMPORTANT: Do not create a separate disconnected demo. Integrate the Admin Panel with my existing frontend, backend, MongoDB database, authentication system, and ML prediction service.
-
-## 1. ADMIN PANEL DESIGN
-
-Create a premium, modern agricultural technology dashboard.
-
-Design requirements:
-- Forest Green: #14532D
-- Leaf Green: #22C55E
-- White background
-- Light green cards
-- Professional typography (Poppins or Inter)
-- Modern sidebar navigation
-- Responsive dashboard
-- Interactive charts
-- Professional tables
-- Search and filtering
-- Smooth transitions
-- Dark mode option
-
-Admin layout:
-- Left sidebar
-- Top navigation bar
-- Main dashboard
-- Notification section
-- Admin profile menu
-- Logout button
-
-## 2. ADMIN LOGIN AND SECURITY
-
-Create a separate secure admin login system.
-
-Features:
-- Admin email and password
-- JWT authentication
-- Password hashing using bcrypt
-- Role-based access control
-- Admin-only protected routes
-- Session expiration
-- Logout
-- Unauthorized access prevention
-
-Roles:
-1. Super Admin
-2. Admin
-3. Content Manager
-
-Only authorized administrators can access admin functions.
-
-Never allow users to become administrators by changing frontend values or submitting their own role.
-
-## 3. ADMIN DASHBOARD
-
-Create a real-time dashboard displaying:
-
-Statistics cards:
-- Total registered users
-- Total plant scans
-- Total healthy predictions
-- Total disease predictions
-- Total Tomato scans
-- Total Potato scans
-- Total Capsicum scans
-- Total Grapes scans
-- Total active users
-- Total feedback received
-
-Charts:
-- Daily prediction statistics
-- Monthly scan statistics
-- Crop-wise prediction distribution
-- Disease-wise distribution
-- Healthy vs diseased comparison
-- User registration growth
-
-All dashboard statistics must come from MongoDB APIs. Do not use hardcoded demo statistics.
-
-## 4. USER MANAGEMENT
-
-Create a complete user management module.
-
-Admin should be able to:
-
-- View all registered users
-- Search users by name and email
-- Filter users by registration date
-- View individual user profiles
-- View user scan history
-- View user activity
-- Activate or deactivate accounts
-- Delete accounts with confirmation
-- Export user data to CSV
-
-Display:
-- User ID
-- Name
-- Email
-- Registration date
-- Total scans
-- Account status
-
-Never display users' passwords or password hashes.
-
-## 5. AI PREDICTION MANAGEMENT
-
-Create a dedicated AI prediction monitoring page.
-
-Admin should be able to:
-
-- View all plant disease predictions
-- View uploaded leaf images
-- View predicted crop
-- View predicted disease
-- View confidence percentage
-- View prediction timestamp
-- Search by disease name
-- Filter by crop
-- Filter by prediction date
-- Filter healthy and infected results
-- View individual prediction details
-
-Provide analytics for:
-- Most frequently detected diseases
-- Most scanned crops
-- Low-confidence predictions
-- Prediction volume over time
-
-Admin must not be able to modify historical AI prediction results without an auditable correction process.
-
-## 6. DISEASE MANAGEMENT
-
-Create a complete disease database management module.
-
-Admin can:
-- Add new disease information
-- Edit disease information
-- Delete disease records
-- View all diseases
-- Search diseases
-- Filter diseases by crop
-
-Disease information fields:
-- Disease name
-- Crop name
-- Scientific name
-- Disease description
-- Symptoms
-- Causes
-- Disease severity information
-- Prevention methods
-- Reference images
-- Status
-
-Support Tomato, Potato, Capsicum and Grapes.
-
-Keep disease information separate from the ML model's class mapping. Adding a disease article must not automatically change the model's supported classes.
-
-## 7. ORGANIC TREATMENT MANAGEMENT
-
-Create an Organic Solutions management module.
-
-Admin can:
-- Add organic treatments
-- Edit organic treatments
-- Delete treatments
-- Assign treatments to diseases
-- Add treatment images
-- Add application instructions
-- Add precautions
-- Add frequency information
-
-Examples:
-- Neem-based products
-- Biofungicides
-- Biological pest management
-- Organic crop protection
-- Natural prevention methods
-
-## 8. INORGANIC TREATMENT MANAGEMENT
-
-Create an Inorganic Solutions management module.
-
-Admin can:
-- Add chemical treatment information
-- Edit treatment information
-- Delete treatment records
-- Assign chemical solutions to diseases
-- Add active ingredients
-- Add registered product details
-- Add application instructions
-- Add safety precautions
-- Add protective equipment instructions
-- Add pre-harvest interval information
-
-IMPORTANT:
-Never invent chemical dosage or recommend unregistered pesticides. Store verified product-label information and require administrator review before publishing treatment recommendations.
-
-## 9. MULTILINGUAL CONTENT MANAGEMENT
-
-Create a language management section.
-
-Supported languages:
-- English
-- Hindi
-- Bengali
-- Punjabi
-- Marathi
-- Tamil
-- Telugu
-
-Admin should be able to:
-- Manage translated disease descriptions
-- Manage translated treatment information
-- Edit translated content
-- Publish translations
-- Preview language changes
-
-## 10. ML MODEL MANAGEMENT
-
-Create a dedicated ML Model Monitoring section.
-
-Display:
-- Model name
-- Model version
-- Training date
-- Number of supported classes
-- Model file status
-- Current active model
-- Last deployment date
-- Model accuracy, when verified test metrics are available
-
-Features:
-- Upload new model version
-- Upload class_names.json
-- Validate model and class mapping
-- Activate a model version
-- Roll back to previous version
-- View model metadata
-- View model evaluation metrics
-- Monitor inference errors
-
-Only allow validated models to become active.
-
-Do not claim model accuracy based on training accuracy alone. Show test-set evaluation metrics separately.
-
-## 11. FEEDBACK AND SUPPORT MANAGEMENT
-
-Admin can:
-- View all user feedback
-- View user ratings
-- Read feedback messages
-- Search feedback
-- Filter feedback by date
-- Mark feedback as resolved
-- Delete inappropriate feedback
-- View contact messages
-- Reply through an integrated notification or support system
-
-## 12. NOTIFICATION MANAGEMENT
-
-Create an admin notification system.
-
-Admin can:
-- Send announcements
-- Send maintenance notifications
-- Notify users about new features
-- Send important disease-related awareness messages
-- View notification history
-- Schedule announcements
-
-## 13. REPORTS AND ANALYTICS
-
-Create a reports section.
-
-Allow admin to:
-- Generate daily reports
-- Generate weekly reports
-- Generate monthly reports
-- Download PDF reports
-- Export CSV reports
-- View crop-wise analytics
-- View disease-wise analytics
-- View user growth reports
-- View prediction confidence distribution
-
-Reports must use actual database records.
-
-## 14. SYSTEM SETTINGS
-
-Create a settings module.
-
-Features:
-- Website name and logo management
-- Admin profile settings
-- Password change
-- Language settings
-- Notification settings
-- Image upload limits
-- Prediction confidence threshold
-- Website maintenance mode
-- API health monitoring
-- Database connection status
-- Backend service status
-- ML service status
-
-Changing the confidence threshold must affect the real prediction service only after validation and explicit saving.
-
-## 15. ADMIN ACTIVITY LOGS
-
-Create an audit logging system.
-
-Record:
-- Admin login
-- Admin logout
-- User activation/deactivation
-- User deletion
-- Disease additions and modifications
-- Treatment changes
-- Model uploads
-- Model activation
-- Settings changes
-
-Each activity must store:
-- Admin ID
-- Action
-- Description
-- Timestamp
-- Relevant record ID
-
-Audit logs should be protected against ordinary administrator modification.
-
-## 16. MONGODB DATABASE
-
-Create the following collections or equivalent Mongoose models:
-
-1. Admins
-2. Users
-3. Predictions
-4. Diseases
-5. OrganicTreatments
-6. InorganicTreatments
-7. Feedback
-8. Notifications
-9. ModelVersions
-10. AdminActivityLogs
-11. SystemSettings
-
-Use proper validation, indexes, timestamps and relationships.
-
-## 17. ADMIN BACKEND API ROUTES
-
-Authentication:
-- POST /api/admin/auth/login
-- POST /api/admin/auth/logout
-- GET /api/admin/auth/profile
-
-Dashboard:
-- GET /api/admin/dashboard/stats
-- GET /api/admin/dashboard/analytics
-
-Users:
-- GET /api/admin/users
-- GET /api/admin/users/:id
-- PATCH /api/admin/users/:id/status
-- DELETE /api/admin/users/:id
-
-Predictions:
-- GET /api/admin/predictions
-- GET /api/admin/predictions/:id
-- GET /api/admin/predictions/analytics
-
-Diseases:
-- GET /api/admin/diseases
-- POST /api/admin/diseases
-- PUT /api/admin/diseases/:id
-- DELETE /api/admin/diseases/:id
-
-Treatments:
-- GET /api/admin/treatments
-- POST /api/admin/treatments
-- PUT /api/admin/treatments/:id
-- DELETE /api/admin/treatments/:id
-
-ML Models:
-- GET /api/admin/models
-- POST /api/admin/models/upload
-- POST /api/admin/models/:id/activate
-- POST /api/admin/models/:id/rollback
-
-Feedback:
-- GET /api/admin/feedback
-- PATCH /api/admin/feedback/:id/status
-
-Reports:
-- GET /api/admin/reports/pdf
-- GET /api/admin/reports/csv
-
-Settings:
-- GET /api/admin/settings
-- PUT /api/admin/settings
-
-Activity:
-- GET /api/admin/activity-logs
-
-Protect every admin API with authentication and role-based authorization.
-
-## 18. ADMIN PANEL FOLDER STRUCTURE
-
-Create a clean architecture:
-
-admin/
-  frontend/
-    src/
-      components/
-        Sidebar.jsx
-        Navbar.jsx
-        StatCard.jsx
-        DataTable.jsx
-        Charts.jsx
-      pages/
-        AdminLogin.jsx
-        Dashboard.jsx
-        Users.jsx
-        Predictions.jsx
-        Diseases.jsx
-        OrganicTreatments.jsx
-        InorganicTreatments.jsx
-        ModelManagement.jsx
-        Feedback.jsx
-        Notifications.jsx
-        Reports.jsx
-        Settings.jsx
-        ActivityLogs.jsx
-      services/
-        adminApi.js
-      context/
-        AdminAuthContext.jsx
-
-  backend/
-    controllers/
-    routes/
-    middleware/
-    models/
-    services/
-    utils/
-
-Integrate these modules into my existing AGROCURE AI architecture rather than duplicating existing functionality.
-
-## 19. FINAL REQUIREMENTS
-
-The Admin Panel must:
-
-- Work with real MongoDB data.
-- Have fully functional buttons and forms.
-- Have working search, sorting and filtering.
-- Have secure admin authentication.
-- Have role-based permissions.
-- Have working CRUD operations.
-- Have responsive layouts.
-- Have loading and error states.
-- Have confirmation dialogs for destructive actions.
-- Have proper form validation.
-- Have pagination for large datasets.
-- Have audit logs.
-- Have no fake statistics or dummy predictions.
-- Have no dead buttons or placeholder functionality.
-
-First inspect my existing project structure and reuse existing models, routes and services wherever possible.
-
-Implement the Admin Panel step by step. Provide complete source code and explain how to run and test it locally.
-
-Do not break the existing user-facing AGROCURE AI website.
+# AgroCure AI – AI-Powered Agricultural Assistant for Inclusive Plant Disease Detection
+
+An intelligent, full-stack agricultural web platform engineered to detect foliar crop diseases, segment necrotic lesions, and deliver actionable organic and chemical treatments. Built with deep linguistic inclusivity for Indian farmers, offering real-time translations and voice assistance in **English**, **Hindi (हिंदी)**, and **Kannada (ಕನ್ನಡ)**.
+
+---
+
+## 🌾 Supported Crops & Pathologies
+
+| Crop | Scientific Name | Target Pathologies & Conditions |
+| :--- | :--- | :--- |
+| **Pepper (Capsicum)** | *Capsicum annuum* | Bacterial Spot (*Xanthomonas euvesicatoria*), Healthy Leaf |
+| **Grapes** | *Vitis vinifera* | Black Rot (*Guignardia bidwellii*), Esca / Black Measles (*Phaeomoniella*), Healthy Leaf |
+| **Wheat** | *Triticum aestivum* | Yellow / Stripe Rust (*Puccinia striiformis*), Brown / Leaf Rust (*Puccinia triticina*), Powdery Mildew (*Blumeria graminis*), Healthy Plant |
+| **Corn (Maize)** | *Zea mays* | Common Rust (*Puccinia sorghi*), Gray Leaf Spot (*Cercospora zeae-maydis*), Northern Corn Leaf Blight (*Exserohilum turcicum*), Healthy Leaf |
+
+---
+
+## 🤖 Integrated Machine Learning Models
+
+AgroCure AI supports multi-model inference with side-by-side comparative consensus:
+
+| Model | Checkpoint Origin | Architecture | Supported Classes | Supported Crops |
+| :--- | :--- | :--- | :--- | :--- |
+| **Model 1 (Primary)** | `ai_engine/inference.py` | MobileNetV2 + OpenCV Foliar Telemetry | **19 Classes** | Tomato, Potato, Capsicum, Grapes |
+| **Model 2 (Colab)** | `models/final_plant_disease_model.keras` | Deep CNN with 15-Class Dense Head `(1280, 15)` | **15 Classes** | Tomato, Potato, Capsicum |
+| **Dual Comparison** | `ai_engine/multi_model_service.py` | Concurrent Parallel Execution & Consensus | **Consensus Evaluation** | Tomato, Potato, Capsicum, Grapes |
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: **React.js 18**, Tailwind CSS, FontAwesome 6, Web Speech Synthesis API (Audio Voice Guidance in EN/HI/KN).
+- **Backend**: **Node.js** & **Express.js** REST API with Multer file uploads, and a high-performance **FastAPI** gateway.
+- **Deep Learning Model**: **TensorFlow / Keras** & **PyTorch** **MobileNetV2** (Inverted Residual Depthwise Separable Convolutions).
+- **Computer Vision**: **OpenCV** & **NumPy** vegetative indices (**Excess Green Index - ExG**, **Green Leaf Index - GLI**, dynamic bounding box `[ymin, xmin, ymax, xmax]`, and lesion heatmaps).
+- **Database**: **MongoDB** with Mongoose schema (`ScanSchema`) and persistent local JSON fallback (`scans_history.json`).
+- **Languages**: **English (en)**, **Hindi (hi - हिंदी)**, **Kannada (kn - ಕನ್ನಡ)**.
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Launch the AgroCure AI Platform
+Install the Python dependencies, then ensure MongoDB is running locally at
+`mongodb://127.0.0.1:27017/agrocure_ai` (or set `MONGODB_URI` to another connection string):
+```powershell
+cd C:\path\to\agrocure_ai
+python -m pip install -r requirements.txt
+python -m uvicorn backend.app_server:app --host 127.0.0.1 --port 5000 --reload
+```
+The requirements install the TensorFlow runtime needed to load the complete
+Google Colab Model 2 checkpoint. Restart the server after installing dependencies.
+Do not commit a URI containing database credentials. `MONGODB_DB_NAME` optionally
+overrides the database name in the URI; otherwise the app uses the URI's database
+or `agrocure_ai`.
+*(Or double-click [run_agrocure.bat](./run_agrocure.bat))*
+
+Open your browser at: **`http://127.0.0.1:5000`**
+
+### Administrator Setup
+No demo user or administrator accounts are created. To create an initial admin,
+set `AGROCURE_INITIAL_ADMIN_EMAIL` and `AGROCURE_INITIAL_ADMIN_PASSWORD` in the
+environment, then run `python init_admin_data.py`. The script creates the admin
+using those values and seeds the catalog data.
+
+Set `AGROCURE_ADMIN_AUTH_SECRET` for persistent FastAPI admin sessions and
+`AGROCURE_ADMIN_SECRET` for the separate Node.js admin API. If unset, each
+process uses a random temporary key, so tokens become invalid after a restart.
+Keep these values in your deployment environment and never commit them.
+
+The FastAPI server stores users, scans, feedback, messages, and team data in the
+`agrocure_ai` MongoDB database when connected. On first connection it imports
+existing JSON data into empty collections. If MongoDB is unavailable, the app logs the connection
+failure and continues using its JSON files; `/api/status` reports the active
+storage backend.
+
+### Managing Development Team Profiles
+Sign in with an Admin or Developer account, open **About Us**, and select
+**Edit Profile** on a team member card. You can update profile details, skills,
+links, and photo; changes are saved through the role-protected API to MongoDB
+(or the JSON fallback). Team edit sessions use signed bearer tokens that expire
+after 24 hours. Set `AGROCURE_AUTH_SECRET` to a stable private value if tokens
+should remain valid across server restarts.
+
+### 2. Node.js & Express / MongoDB Execution (Alternative)
+```powershell
+cd C:\path\to\agrocure_ai\backend
+npm install
+node server.js
+```
+
+---
+
+## 📂 Project Architecture
+
+```
+agrocure_ai/
+├── models/
+│   ├── final_plant_disease_model.keras   # Exported Google Colab Model (9.86 MB)
+│   └── class_names.json                  # 15 Colab target classes
+├── backend/
+│   ├── app_server.py           # Unified FastAPI / Uvicorn server (/api/models, /api/scan, /api/scan/compare)
+│   ├── admin_routes.py         # Administrator portal endpoints & analytics
+│   ├── server.js               # Node.js & Express.js REST API server
+│   └── package.json            # Node dependencies (express, mongoose, multer, cors)
+├── frontend/
+│   ├── index.html              # React.js 14-Page Single-Page Application with Model Selection
+│   ├── admin.html              # Admin portal frontend
+│   └── translations.js         # Complete UI dictionaries in English, Hindi, Kannada, Tamil, Marathi
+├── ai_engine/
+│   ├── colab_engine.py         # Model 2 Google Colab inference engine
+│   ├── multi_model_service.py  # Multi-model orchestrator & comparative consensus engine
+│   ├── inference.py            # Model 1 MobileNetV2 foliar engine (Primary)
+│   ├── disease_catalog.py      # Multilingual agricultural pathology & treatment knowledge base
+│   └── cv_detector.py          # OpenCV leaf boundary detection & lesion segmentation
+├── data/
+│   ├── scans_history.json      # Persistent farmer diagnostic scan log with Model tracking
+│   └── users.json              # Registered user accounts & roles
+├── static/
+│   └── samples/                # Preloaded test leaves for instant 1-click evaluation
+├── test_multi_model.py         # Multi-model unit verification script
+├── test_endpoints.py           # Comprehensive API route tester
+└── run_agrocure.bat            # 1-Click launcher
+```

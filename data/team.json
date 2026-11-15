@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "name": "ADITYA G RATHOD",
+    "role": "Lead Full-Stack Architect & Team Lead",
+    "dept": "Final Year B.Tech CSE",
+    "badge": "Architecture & Frontend",
+    "badgeColor": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    "bio": "Engineered the end-to-end full-stack web architecture, reactive state pipeline, REST APIs, and multi-language foliar pathology interface.",
+    "image": "/static/team/dev1.png",
+    "initials": "AS",
+    "avatarBg": "from-emerald-600 to-teal-500",
+    "skills": [
+      "React.js",
+      "Node.js",
+      "Express.js",
+      "MongoDB",
+      "Tailwind CSS",
+      "REST APIs",
+      "Git/GitHub"
+    ],
+    "github": "https://github.com/abhishek-agrocure",
+    "linkedin": "https://linkedin.com/in/abhishek-agrocure",
+    "portfolio": "https://abhishek-portfolio.dev",
+    "email": "mails2adityagr@gmail.com"
+  },
+  {
+    "id": 2,
+    "name": "Abhishek Singh Patel",
+    "role": "AI/ML & Deep Learning Engineer",
+    "dept": "Final Year B.Tech ISE",
+    "badge": "MobileNetV2 & Vision",
+    "badgeColor": "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    "bio": "Trained and fine-tuned the 19-class MobileNetV2 CNN classifier, optimized tensor quantization, and constructed the OpenCV ExG lesion segmentation engine.",
+    "image": "/static/team/dev2.png",
+    "initials": "AP",
+    "avatarBg": "from-purple-600 to-indigo-500",
+    "skills": [
+      "Python",
+      "TensorFlow",
+      "MobileNetV2",
+      "OpenCV",
+      "PyTorch",
+      "NumPy",
+      "Model Quantization"
+    ],
+    "github": "https://github.com/abhishek-patel-agrocure",
+    "linkedin": "https://linkedin.com/in/abhishek-singh-patel",
+    "portfolio": "https://abhishekpatel-ai.dev",
+    "email": "abhishek.patel@agrocure.ai"
+  },
+  {
+    "id": 3,
+    "name": "Rohan Verma",
+    "role": "Backend & Cloud Systems Engineer",
+    "dept": "Final Year B.Tech CSE",
+    "badge": "FastAPI & Database",
+    "badgeColor": "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    "bio": "Designed high-concurrency Node.js/FastAPI endpoints, JWT session security, Multer multipart streaming, and MongoDB aggregation pipelines.",
+    "image": "/static/team/dev3.png",
+    "initials": "RV",
+    "avatarBg": "from-blue-600 to-cyan-500",
+    "skills": [
+      "Node.js",
+      "FastAPI",
+      "MongoDB",
+      "Mongoose",
+      "JWT Auth",
+      "Multer",
+      "Docker"
+    ],
+    "github": "https://github.com/rohan-agrocure",
+    "linkedin": "https://linkedin.com/in/rohan-agrocure",
+    "portfolio": "https://rohan-backend.dev",
+    "email": "rohan@agrocure.ai"
+  }
+]

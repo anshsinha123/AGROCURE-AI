@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AgroCure AI Technical Handbook</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 16mm 14mm 16mm 14mm;
+            @bottom-right {
+                content: counter(page);
+                font-size: 8.5pt;
+                color: #64748b;
+            }
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", "Noto Sans Kannada", sans-serif;
+            color: #1e293b;
+            background: #ffffff;
+            line-height: 1.45;
+            font-size: 9pt;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .cover-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24mm 10mm 15mm 10mm;
+            border-bottom: 3px solid #10b981;
+        }
+
+        .cover-top {
+            border-left: 6px solid #059669;
+            padding-left: 18px;
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 8.5pt;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            border: 1px solid #a7f3d0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .cover-title {
+            font-size: 26pt;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+        }
+
+        .cover-subtitle {
+            font-size: 13pt;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .cover-desc {
+            font-size: 10pt;
+            color: #475569;
+            margin-top: 14px;
+            max-width: 620px;
+            line-height: 1.5;
+        }
+
+        .crops-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 25px 0;
+        }
+
+        .crop-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .crop-title {
+            font-weight: 700;
+            font-size: 10.5pt;
+            color: #0f172a;
+        }
+
+        .crop-sci {
+            font-size: 8pt;
+            color: #059669;
+            font-style: italic;
+        }
+
+        .cover-meta {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            font-size: 8.5pt;
+            border-left: 4px solid #0f172a;
+        }
+
+        .meta-lbl {
+            color: #64748b;
+            text-transform: uppercase;
+            font-size: 7pt;
+            font-weight: 700;
+        }
+
+        .meta-val {
+            color: #0f172a;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        h2.sec-heading {
+            font-size: 13pt;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-top: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        h2.sec-heading .sec-num {
+            background: #059669;
+            color: #ffffff;
+            font-size: 8.5pt;
+            font-weight: 800;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+
+        table.tbl {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 14px 0;
+            font-size: 8pt;
+        }
+
+        table.tbl th {
+            background: #0f172a;
+            color: #ffffff;
+            font-weight: 700;
+            text-align: left;
+            padding: 6px 8px;
+            border: 1px solid #0f172a;
+        }
+
+        table.tbl td {
+            padding: 5px 8px;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+        }
+
+        table.tbl tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .callout {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            margin: 10px 0;
+            font-size: 8pt;
+        }
+
+        .disease-entry {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            page-break-inside: avoid;
+        }
+
+        .disease-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .crop-tag {
+            font-size: 7pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #059669;
+            background: #ecfdf5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .disease-title {
+            font-size: 10.5pt;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 2px;
+        }
+
+        .lang-titles {
+            font-size: 7.5pt;
+            color: #475569;
+            margin: 2px 0;
+        }
+
+        .pathogen-text {
+            font-size: 7.5pt;
+            font-style: italic;
+            color: #64748b;
+        }
+
+        .severity-badge {
+            font-size: 7pt;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+        }
+
+        .symptoms-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #cbd5e1;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin: 6px 0;
+            font-size: 8pt;
+        }
+
+        .treat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .treat-card {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 8px;
+        }
+
+        .treat-subhead {
+            font-size: 7.5pt;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .org-head { color: #047857; }
+        .chem-head { color: #1d4ed8; }
+
+        .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .g-dot { background: #10b981; }
+        .b-dot { background: #3b82f6; }
+
+        .treat-list {
+            list-style: square;
+            padding-left: 12px;
+            font-size: 7.5pt;
+            color: #334155;
+            line-height: 1.35;
+        }
+
+        pre.code {
+            background: #0f172a;
+            color: #34d399;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 7.5pt;
+            line-height: 1.35;
+            margin: 6px 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- COVER PAGE -->
+    <div class="cover-page">
+        <div class="cover-top">
+            <span class="cover-badge">AgroCure AI Technical Specification</span>
+            <h1 class="cover-title">AgroCure AI</h1>
+            <div class="cover-subtitle">AI-Powered Agricultural Assistant for Inclusive Plant Disease Detection</div>
+            <p class="cover-desc">
+                An intelligent multi-platform agricultural web application using Deep Learning (CNN / MobileNetV2) and
+                Computer Vision (OpenCV) to detect crop diseases from leaf images. Engineered for rural inclusivity with
+                native trilingual support in English, Hindi (हिंदी), and Kannada (ಕನ್ನಡ).
+            </p>
+        </div>
+
+        <div>
+            <div style="font-weight: 700; font-size: 8.5pt; text-transform: uppercase; color: #475569; letter-spacing: 0.05em; margin-bottom: 6px;">Supported Agronomic Crops</div>
+            <div class="crops-grid">
+                <div class="crop-box">
+                    <div class="crop-title">Pepper</div>
+                    <div class="crop-sci">Capsicum annuum</div>
+                </div>
+                <div class="crop-box">
+                    <div class="crop-title">Grapes</div>
+                    <div class="crop-sci">Vitis vinifera</div>
+                </div>
+                <div class="crop-box">
+                    <div class="crop-title">Wheat</div>
+                    <div class="crop-sci">Triticum aestivum</div>
+                </div>
+                <div class="crop-box">
+                    <div class="crop-title">Corn (Maize)</div>
+                    <div class="crop-sci">Zea mays</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cover-meta">
+            <div>
+                <div class="meta-lbl">Core Stack</div>
+                <div class="meta-val">React.js &bull; Node.js &bull; Express.js</div>
+            </div>
+            <div>
+                <div class="meta-lbl">AI & CV Frameworks</div>
+                <div class="meta-val">TensorFlow / MobileNetV2 &bull; OpenCV</div>
+            </div>
+            <div>
+                <div class="meta-lbl">Supported Languages</div>
+                <div class="meta-val">English &bull; हिंदी &bull; ಕನ್ನಡ</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: ARCHITECTURE & CV ENGINE -->
+    <div class="page-break"></div>
+
+    <h2 class="sec-heading"><span class="sec-num">1</span>System Architecture & Inclusivity Paradigm</h2>
+    <p>
+        AgroCure AI bridges advanced Deep Learning computer vision and practical agricultural extension services for smallholder
+        farmers across diverse linguistic backgrounds. The full-stack architecture consists of:
+    </p>
+
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Tier</th>
+                <th>Technology</th>
+                <th>Responsibilities</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Frontend UI</strong></td>
+                <td>React.js &bull; Tailwind CSS</td>
+                <td>Reactive camera upload, live lesion heatmap toggle, audio speech synthesis (Voice Assistant), dynamic language switching.</td>
+            </tr>
+            <tr>
+                <td><strong>Backend Gateway</strong></td>
+                <td>Node.js &bull; Express.js</td>
+                <td>Multer image upload processing, RESTful routing, MongoDB Mongoose schema persistence, and Python microservice orchestration.</td>
+            </tr>
+            <tr>
+                <td><strong>AI Engine</strong></td>
+                <td>Python &bull; TensorFlow / Keras &bull; OpenCV</td>
+                <td>MobileNetV2 deep neural classification, Excess Green Index (ExG/GLI) leaf detection, lesion bounding box extraction.</td>
+            </tr>
+            <tr>
+                <td><strong>Database Layer</strong></td>
+                <td>MongoDB &bull; JSON Storage</td>
+                <td>Permanent farmer scan records, foliar bounding boxes, timestamps, and language-specific audit logs.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <strong>Trilingual Speech Synthesis for Rural Accessibility:</strong>
+        AgroCure AI features built-in text-to-speech audio guidance in <strong>English</strong>, <strong>Hindi (हिंदी)</strong>, and <strong>Kannada (ಕನ್ನಡ)</strong>,
+        enabling illiterate and semi-literate farmers to listen to disease symptoms and organic remedies directly from their smartphone speakers.
+    </div>
+
+    <h2 class="sec-heading"><span class="sec-num">2</span>Computer Vision Leaf Detection (OpenCV)</h2>
+    <p>
+        Before neural classification, the OpenCV preprocessing module segments the leaf blade and calculates quantitative metrics:
+    </p>
+    <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-family: Consolas, monospace; font-size: 7.5pt; margin-bottom: 8px;">
+        ExG = 2 &times; G - R - B<br>
+        GLI = (2 &times; G - R - B) / (2 &times; G + R + B)
+    </div>
+    <pre class="code">
+# HSV Color Space Foliage Extraction
+plant_mask = ((hue >= 25) & (hue <= 165) & (sat > 0.12) & (val > 0.15))
+lesion_mask = leaf_mask & (~healthy_green) & (
+    ((hue < 48) & (sat > 0.15)) |   # Chlorotic / Rust pustules
+    ((val < 0.35) & (sat > 0.10)) | # Dark necrotic lesions
+    (exg < -5)
+)
+lesion_percentage = (lesion_pixel_count / leaf_pixel_count) * 100.0
+    </pre>
+
+    <h2 class="sec-heading"><span class="sec-num">3</span>MobileNetV2 Neural Network Backbone</h2>
+    <p>
+        MobileNetV2 uses Inverted Residual Blocks with Linear Bottlenecks to drastically reduce model size (only ~3.5M parameters)
+        and achieve sub-25 millisecond inference latency on mobile CPU devices:
+    </p>
+    <pre class="code">
+# MobileNetV2 Transfer Learning Architecture in TensorFlow / Keras
+base_model = tf.keras.applications.MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+base_model.trainable = False
+x = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+x = tf.keras.layers.Dropout(0.3)(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+outputs = tf.keras.layers.Dense(13, activation='softmax')(x)
+    </pre>
+
+    <!-- PAGE 3: DISEASE PROFILES -->
+    <div class="page-break"></div>
+
+    <h2 class="sec-heading"><span class="sec-num">4</span>Trilingual Pathology Encyclopedia (Pepper, Grapes, Wheat, Corn)</h2>
+
+    
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Pepper</span>
+                    <h3 class="disease-title">Bacterial Spot</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> जीवाणु पत्ती धब्बा (Bacterial Spot)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ಎಲೆ ಚುಕ್ಕೆ ರೋಗ (Bacterial Spot)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Bacterium (Xanthomonas euvesicatoria)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    High
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Small, water-soaked circular to irregular lesions (1-3mm) turning brown to black with chlorotic yellow halos. Leads to severe defoliation and sunken fruit spots.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियों पर छोटे, जल-सोखे हुए गोल या अनियमित धब्बे (1-3 मिमी) जो बाद में पीले घेरे के साथ भूरे-काले हो जाते हैं। पत्तियां तेजी से झड़ जाती हैं।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳ ಮೇಲೆ ನೀರಿನಿಂದ ಕೂಡಿದ ಸಣ್ಣ ಕಂದು-ಕಪ್ಪು ಚುಕ್ಕೆಗಳು ಹಳದಿ ಅಂಚಿನೊಂದಿಗೆ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ. ಎಲೆಗಳು ಉದುರಿ ಇಳುವರಿ ಕಡಿಮೆಯಾಗುತ್ತದೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Spray copper soap (copper octanoate) or fixed copper bactericide in early morning.</li><li>Apply bio-control agent Bacillus subtilis (Serenade) every 7-10 days.</li><li>Mulch bed with clean straw or plastic to prevent soil-splash onto lower leaves.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> सुबह के समय कॉपर सोप (कॉपर ऑक्टानोएट) या नीम तेल का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ತಾಮ್ರದ ಸಾಬೂನು (Copper soap) ಅಥವಾ ಬೇವಿನ ಎಣ್ಣೆ ದ್ರಾವಣವನ್ನು ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Fixed copper hydroxide tank-mixed with Mancozeb (acts synergistically).</li><li>Streptomycin sulfate sprays in early crop stages where agricultural use is registered.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> कॉपर हाइड्रोक्साइड को मैन्कोजेब (Mancozeb) के साथ मिलाकर स्प्रे करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಕಾಪರ್ ಹೈಡ್ರಾಕ್ಸೈಡ್ ಮತ್ತು ಮ್ಯಾಂಕೋಜೆಬ್ (Mancozeb) ಮಿಶ್ರಣವನ್ನು ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Pepper</span>
+                    <h3 class="disease-title">Healthy Plant Leaf</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> स्वस्थ पत्ती (Healthy)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಆರೋಗ್ಯಕರ ಎಲೆ (Healthy)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: None</div>
+                </div>
+                <div class="severity-badge" style="color: #10b981; background-color: #ecfdf5; border: 1px solid #10b98140;">
+                    Healthy
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Foliage is uniformly glossy green, firm, free of lesions, curling, blisters, or yellow halos. Healthy cellular structure.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्ती पूरी तरह से चमकदार हरी, चिकनी और रोगमुक्त है। कोई धब्बे, मुड़न या फफूंद नहीं है।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳು ನೈಸರ್ಗಿಕ ಹಸಿರು ಬಣ್ಣದಿಂದ ಕೂಡಿದ್ದು, ಯಾವುದೇ ಕಲೆ, ಸುರುಟು ಅಥವಾ ಶಿಲೀಂಧ್ರವಿಲ್ಲದೆ ಆರೋಗ್ಯವಾಗಿವೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Maintain balanced organic compost and apply foliar seaweed extract every 14 days.</li><li>Spray prophylactic neem oil (0.5%) once a month during humid weather.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> संतुलित जैविक खाद डालें और 15 दिनों में समुद्री शैवाल (Seaweed extract) का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಸಾವಯವ ಗೊಬ್ಬರ ಮತ್ತು ಸಮುದ್ರ ಪಾಚಿ ಸಾರವನ್ನು (Seaweed extract) 15 ದಿನಗಳಿಗೊಮ್ಮೆ ಬಳಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>No chemical intervention needed. Maintain balanced N-P-K-Ca fertility.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> किसी रासायनिक दवा की आवश्यकता नहीं है। संतुलित पोषण बनाए रखें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಯಾವುದೇ ರಾಸಾಯನಿಕ ಅಗತ್ಯವಿಲ್ಲ. ಸಮತೋಲಿತ ಪೋಷಕಾಂಶ ನೀಡಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Grapes</span>
+                    <h3 class="disease-title">Black Rot</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> काला सड़न रोग (Black Rot)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಕಪ್ಪು ಕೊಳೆ ರೋಗ (Black Rot)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Guignardia bidwellii)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    High
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Reddish-brown circular lesions on leaf surfaces with dark borders. Tiny black pimple-like pycnidia fruiting bodies appear inside spots. Causes berries to shrivel into hard black mummies.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियों पर लाल-भूरे रंग के गोल धब्बे और उनके अंदर छोटे काले दाने (पाइक्नीडिया)। अंगूर के दाने काले होकर सूख जाते हैं।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳ ಮೇಲೆ ಕೆಂಪು-ಕಂದು ಬಣ್ಣದ ವೃತ್ತಾಕಾರದ ಚುಕ್ಕೆಗಳು ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ. ಹಣ್ಣುಗಳು ಕಪ್ಪಾಗಿ ಸುಕ್ಕುಗಟ್ಟಿ ಒಣಗುತ್ತವೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Spray copper hydroxide or wettable sulfur from bud-break through early fruit set.</li><li>Prune away and burn all mummified grape clusters and infected canes during dormancy.</li><li>Use bio-fungicide Bacillus amyloliquefaciens.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> कलियां खिलने के समय कॉपर सल्फेट या घुलनशील गंधक (सल्फर) का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ತಾಮ್ರದ ದ್ರಾವಣ (Bordeaux mixture) ಅಥವಾ ಗಂಧಕದ ಪುಡಿ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Apply Myclobutanil (Rally 40WSP) or Mancozeb on early preventive schedules.</li><li>Azoxystrobin or Tebuconazole during active bloom periods.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> माइक्लोबुटानिल (Myclobutanil) या मैन्कोजेब (Mancozeb) का समय पर छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಮೈಕ್ಲೋಬುಟಾನಿಲ್ (Myclobutanil) ಅಥವಾ ಮ್ಯಾಂಕೋಜೆಬ್ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Grapes</span>
+                    <h3 class="disease-title">Esca / Black Measles</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> एस्का / ब्लैक मीजल्स (Esca)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಎಸ್ಕಾ / ಬ್ಲ್ಯಾಕ್ ಮೀಸಲ್ಸ್ (Esca)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungal Complex (Phaeomoniella & Fomitiporia)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    Severe
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Tiger-stripe leaf pattern: interveinal yellowing and necrosis with green bands along main veins. Berries show speckled dark purple spots.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> बाघ जैसी धारियां (Tiger-stripe) पत्तियों पर नसों के बीच पीलापन और भूरापन। अंगूर पर बैंगनी चकत्ते।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಯ ನರಗಳ ನಡುವೆ ಹಳದಿ ಮತ್ತು ಕಂದು ಬಣ್ಣದ ಪಟ್ಟೆಗಳು ('ಹುಲಿ ಪಟ್ಟೆ' ಮಾದರಿ). ಹಣ್ಣುಗಳ ಮೇಲೆ ಕಪ್ಪು ಕಲೆಗಳು.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Apply Trichoderma harzianum wound sealant directly to vine pruning cuts.</li><li>Renew vine trunks via suckers if trunk is severely decayed.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> छंटाई के घावों पर ट्राइकोडर्मा (Trichoderma) का लेप लगाएं।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಕೊಂಬೆ ಕತ್ತರಿಸಿದ ಜಾಗಕ್ಕೆ ಟ್ರೈಕೋಡರ್ಮಾ (Trichoderma) ಲೇಪನ ಹಚ್ಚಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Seal pruning wounds immediately with fungicidal wound paste (Thiophanate-methyl).</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> छंटाई के बाद घावों पर थियोफैनेट-मिथाइल कवकनाशी पेस्ट लगाएं।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಗಾಯಗಳ ಮೇಲೆ ಶಿಲೀಂಧ್ರನಾಶಕ ಪೇಸ್ಟ್ (Thiophanate-methyl) ಹಚ್ಚಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Grapes</span>
+                    <h3 class="disease-title">Healthy Grape Leaf</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> स्वस्थ पत्ती (Healthy)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಆರೋಗ್ಯಕರ ದ್ರಾಕ್ಷಿ ಎಲೆ (Healthy)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: None</div>
+                </div>
+                <div class="severity-badge" style="color: #10b981; background-color: #ecfdf5; border: 1px solid #10b98140;">
+                    Healthy
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Broad lobed green leaves with clear veins, crisp margins, and strong shoot elongation.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्ती गहरी हरी, चौड़ी और चमकदार है, कोई धब्बा या फफूंद नहीं है।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳು ಶುಭ್ರವಾದ ಹಸಿರು ಬಣ್ಣ ಹೊಂದಿದ್ದು, ರೋಗಮುಕ್ತವಾಗಿ ಬೆಳೆದಿವೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Apply balanced seaweed extract and organic compost tea.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> संतुलित जैविक खाद और सूक्ष्म पोषक तत्व दें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಸಾವಯವ ಎಲೆಗೊಬ್ಬರ ಮತ್ತು ಕಾಂಪೋಸ್ಟ್ ಟೀ ಬಳಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>None required.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> किसी दवा की आवश्यकता नहीं है।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಯಾವುದೇ ರಾಸಾಯನಿಕ ಅಗತ್ಯವಿಲ್ಲ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Wheat</span>
+                    <h3 class="disease-title">Yellow / Stripe Rust</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> पीला रतुआ / स्ट्राइप रस्ट (Yellow Rust)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಹಳದಿ / ಗೆರೆ ತುಕ್ಕು ರೋಗ (Yellow / Stripe Rust)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Puccinia striiformis)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    Severe / Critical
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Vibrant yellow-orange powdery pustules (uredinia) arranged in distinct parallel stripes along leaf veins. Rapid chlorosis and complete foliage burn.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियों पर नसों के समानांतर पीले-नारंगी रंग की पाउडर जैसी धारियां बन जाती हैं। छूने पर अंगुलियों पर हल्दी जैसा पीला पाउडर लग जाता है।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಯ ನರಗಳ ಉದ್ದಕ್ಕೂ ಸಮಾನಾಂತರ ಹಳದಿ-ಕಿತ್ತಳೆ ಬಣ್ಣದ ಪುಡಿಯಂಥ ಗೆರೆಗಳು ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ. ಕೈಯಿಂದ ಮುಟ್ಟಿದರೆ ಅರಿಶಿನದಂತಹ ಪುಡಿ ಅಂಟಿಕೊಳ್ಳುತ್ತದೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Spray fine wettable sulfur dust (3-4 kg/ha) early in disease onset.</li><li>Apply Trichoderma harzianum and bio-silica formulations to strengthen leaf cuticle.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> सुलभ घुलनशील गंधक (सल्फर पाउडर) का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಕರಗುವ ಗಂಧಕದ ಪುಡಿ (Wettable Sulphur) ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Propiconazole (Tilt 25 EC) @ 1 ml/liter water at first appearance of yellow stripes.</li><li>Tebuconazole 250 EC or Azoxystrobin during flag-leaf emergence.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> प्रोपिकोनाज़ोल 25% EC (टिल्ट/Tilt) 1 मिली प्रति लीटर पानी में मिलाकर तुरंत स्प्रे करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಪ್ರೊಪಿಕೊನಜೋಲ್ (Propiconazole 25 EC) 1 ಮಿ.ಲೀ ಪ್ರತಿ ಲೀಟರ್ ನೀರಿಗೆ ಬೆರೆಸಿ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Wheat</span>
+                    <h3 class="disease-title">Brown / Leaf Rust</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> भूरा रतुआ (Brown / Leaf Rust)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಕಂದು ತುಕ್ಕು ರೋಗ (Brown Rust)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Puccinia triticina)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    Moderate to High
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Small, round to oval, scattered reddish-brown powdery pustules randomly distributed across leaf blade (not in distinct stripes like yellow rust).</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियों पर अनियमित रूप से बिखरे हुए छोटे, गोल-अंडाकार कत्थई/भूरे रंग के पाउडर वाले फफोले।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಯ ಮೇಲೆ ಎಲ್ಲೆಂದರಲ್ಲಿ ಹರಡಿದ ಸಣ್ಣ, ದುಂಡಗಿನ ಕಂದು ಬಣ್ಣದ ಪುಡಿ ತುಂಬಿದ ಗುಳ್ಳೆಗಳು.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Apply sulfur dust formulations at early flag-leaf stage.</li><li>Foliar spray of neem-seed kernel extract (NSKE 5%).</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> नीम के बीज का काढ़ा (NSKE 5%) या सल्फर का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಬೇವಿನ ಕಷಾಯ ಅಥವಾ ಗಂಧಕದ ಪುಡಿಯನ್ನು ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Propiconazole (Tilt 25 EC) or Tebuconazole applied at onset of pustule formation.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> प्रोपिकोनाज़ोल (Propiconazole) 1 मिली/लीटर की दर से छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಪ್ರೊಪಿಕೊನಜೋಲ್ (Tilt) ಸಿಂಪಡಣೆ ಮಾಡಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Wheat</span>
+                    <h3 class="disease-title">Powdery Mildew</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> चूर्णी फफूंद (Powdery Mildew)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಬೂದಿ ರೋಗ (Powdery Mildew)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Blumeria graminis f. sp. tritici)</div>
+                </div>
+                <div class="severity-badge" style="color: #f59e0b; background-color: #fffbeb; border: 1px solid #f59e0b40;">
+                    Moderate
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> White to grayish fluffy, powdery fungal patches on upper leaf surfaces and leaf sheaths, turning dull gray-brown with tiny black cleistothecia.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियों और तनों पर सफेद या मटमैले रंग का चूर्ण (पाउडर) जैसा जमाव दिखता है।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳ ಮೇಲೆ ಬಿಳಿ ಬಣ್ಣದ ಹಿಟ್ಟಿನಂತಹ ಶಿಲೀಂಧ್ರ ಪದರ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Potassium bicarbonate or baking soda spray (5g/L) to alter foliar pH.</li><li>Wettable sulfur sprays (2g/L).</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> घुलनशील सल्फर (गंधक) 2 ग्राम प्रति लीटर पानी में मिलाकर स्प्रे करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಕರಗುವ ಗಂಧಕ (Sulphur) ಅಥವಾ ಅಡುಗೆ ಸೋಡಾ ದ್ರಾವಣ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Triadimefon (Bayleton 25 WP) or Azoxystrobin applied upon first patch detection.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> ट्रायडिमेफॉन (Bayleton) या एज़ोक्सीस्ट्रोबिन का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಟ್ರಯಾಡಿಮೆಫಾನ್ (Bayleton) ಅಥವಾ ಅಜೋಕ್ಸಿಸ್ಟ್ರೋಬಿನ್ ಬಳಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Wheat</span>
+                    <h3 class="disease-title">Healthy Wheat Plant</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> स्वस्थ गेहूं (Healthy)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಆರೋಗ್ಯಕರ ಗೋಧಿ ಎಲೆ (Healthy)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: None</div>
+                </div>
+                <div class="severity-badge" style="color: #10b981; background-color: #ecfdf5; border: 1px solid #10b98140;">
+                    Healthy
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Upright, vibrant green slender leaves free from powdery pustules, yellow stripes, or lesions. Vigorous tillering.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियां पूरी तरह से हरी, सीधी और स्वस्थ हैं। कोई पीली धारियां या धब्बे नहीं हैं।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳು ಶುಭ್ರ ಹಸಿರಾಗಿದ್ದು, ಯಾವುದೇ ತುಕ್ಕು ಅಥವಾ ಬೂದಿ ರೋಗವಿಲ್ಲದೆ ಆರೋಗ್ಯವಾಗಿವೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Apply balanced vermicompost and zinc sulphate spray if soils are deficient.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> जैविक खाद और आवश्यकतानुसार जिंक सल्फेट दें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಎರೆಹುಳು ಗೊಬ್ಬರ ಮತ್ತು ಸತು (Zinc) ಪೋಷಕಾಂಶ ನೀಡಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>None required.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> किसी रसायन की आवश्यकता नहीं है।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಯಾವುದೇ ರಾಸಾಯನಿಕ ಅಗತ್ಯವಿಲ್ಲ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Corn</span>
+                    <h3 class="disease-title">Common Rust</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> सामान्य रतुआ (Common Rust)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಸಾಮಾನ್ಯ ತುಕ್ಕು ರೋಗ (Common Rust)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Puccinia sorghi)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    Moderate to High
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Small, cinnamon-brown to brick-red oval to elongated powdery pustules on both upper and lower leaf surfaces, erupting through leaf epidermis.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्ती की दोनों सतहों पर ईंट-जैसे लाल-भूरे रंग के उभरे हुए पाउडरदार फफोले (पस्ट्यूल्स)।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಯ ಎರಡೂ ಬದಿಗಳಲ್ಲಿ ಇಟ್ಟಿಗೆಯ ಕೆಂಪು-ಕಂದು ಬಣ್ಣದ ಪುಡಿಯಂಥ ಉಬ್ಬಿದ ಗುಳ್ಳೆಗಳು.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Wettable sulfur sprays (3g/L) during early vegetative stages.</li><li>Foliar neem oil spray (1%) to suppress rust spore germination.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> घुलनशील गंधक (सल्फर) या नीम तेल का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಕರಗುವ ಗಂಧಕ ಅಥವಾ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Pyraclostrobin (Headline AMP) or Azoxystrobin + Propiconazole (Quilt Xcel) at silking stage.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> एज़ोक्सीस्ट्रोबिन या प्रोपिकोनाज़ोल का समय पर स्प्रे करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಅಜೋಕ್ಸಿಸ್ಟ್ರೋಬಿನ್ ಅಥವಾ ಪ್ರೊಪಿಕೊನಜೋಲ್ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Corn</span>
+                    <h3 class="disease-title">Gray Leaf Spot (GLS)</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> ग्रे पत्ती धब्बा (Gray Leaf Spot)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಬೂದು ಎಲೆ ಚುಕ್ಕೆ ರೋಗ (Gray Leaf Spot)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Cercospora zeae-maydis)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    High
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Narrow, rectangular tan-to-gray lesions strictly bounded by parallel leaf veins (matchstick appearance), expanding to blight entire leaves.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्ती की नसों के बीच माचिस की तीली जैसे आयताकार भूरे-धूसर रंग के धब्बे जो पूरी पत्ती को सुखा देते हैं।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಯ ನರಗಳ ನಡುವೆ ಬೆಂಕಿಕಡ್ಡಿ ಆಕಾರದ ಆಯತಾಕಾರದ ಬೂದು-ಕಂದು ಕಲೆಗಳು.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Bacillus amyloliquefaciens foliar sprays.</li><li>Shred and till post-harvest corn crop residue into soil.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> जैविक कवकनाशी बैसिलस का छिड़काव करें और पिछली फसल के अवशेषों को नष्ट करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಜೈವಿಕ ಶಿಲೀಂಧ್ರನಾಶಕ ಬಳಸಿ ಮತ್ತು ಬೆಳೆಯ ಉಳಿಕೆಗಳನ್ನು ಮಣ್ಣಿನಲ್ಲಿ ಹೂತುಹಾಕಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Pyraclostrobin + Fluxapyroxad (Priaxor) applied at tassel/silk emergence.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> पाइराक्लोस्ट्रोबिन या मैन्कोजेब का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಪೈರಾಕ್ಲೋಸ್ಟ್ರೋಬಿನ್ ಅಥವಾ ಮ್ಯಾಂಕೋಜೆಬ್ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Corn</span>
+                    <h3 class="disease-title">Northern Corn Leaf Blight (NCLB)</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> उत्तरी पत्ती झुलसा (Northern Leaf Blight)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಉತ್ತರ ಎಲೆ ಒಣಗು ರೋಗ (Northern Leaf Blight)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: Fungus (Exserohilum turcicum)</div>
+                </div>
+                <div class="severity-badge" style="color: #ef4444; background-color: #fef2f2; border: 1px solid #ef444440;">
+                    High
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Large, elongated cigar-shaped grayish-green to tan necrotic lesions (3-15 cm long) with smooth margins across leaf canopy.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियों पर सिगार के आकार के लंबे (3-15 सेमी) भूरे-धूसर रंग के बड़े धब्बे।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಎಲೆಗಳ ಮೇಲೆ ಸಿಗಾರ್ ಆಕಾರದ ಉದ್ದವಾದ (3-15 ಸೆಂ.ಮೀ) ಬೂದು-ಕಂದು ಕಲೆಗಳು.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Copper hydroxide or bio-fungicide Bacillus subtilis foliar spray.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> कॉपर कवकनाशी या जैविक बैसिलस का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಕಾಪರ್ ಶಿಲೀಂಧ್ರನಾಶಕ ಅಥವಾ ಜೈವಿಕ ನಿಯಂತ್ರಕ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>Prothioconazole + Trifloxystrobin or Azoxystrobin sprays before tasseling.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> एज़ोक्सीस्ट्रोबिन या मैन्कोजेब का छिड़काव करें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಅಜೋಕ್ಸಿಸ್ಟ್ರೋಬಿನ್ ಅಥವಾ ಮ್ಯಾಂಕೋಜೆಬ್ ಸಿಂಪಡಿಸಿ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disease-entry">
+            <div class="disease-header">
+                <div>
+                    <span class="crop-tag">Corn</span>
+                    <h3 class="disease-title">Healthy Corn Plant</h3>
+                    <div class="lang-titles">
+                        <span class="hi-text"><strong>हिंदी:</strong> स्वस्थ मक्का (Healthy)</span> &bull; 
+                        <span class="kn-text"><strong>ಕನ್ನಡ:</strong> ಆರೋಗ್ಯಕರ ಮೆಕ್ಕೆಜೋಳ (Healthy)</span>
+                    </div>
+                    <div class="pathogen-text">Pathogen: None</div>
+                </div>
+                <div class="severity-badge" style="color: #10b981; background-color: #ecfdf5; border: 1px solid #10b98140;">
+                    Healthy
+                </div>
+            </div>
+
+            <div class="symptoms-box">
+                <p><strong>English Symptoms:</strong> Long, vigorous arching emerald-green sword-shaped leaves with clean parallel veins and no lesions.</p>
+                <p class="hi-text" style="margin-top: 3px;"><strong>हिंदी लक्षण:</strong> पत्तियां लंबी, गहरी हरी और चमकदार हैं, कोई रतुआ या धब्बे नहीं हैं।</p>
+                <p class="kn-text" style="margin-top: 3px;"><strong>ಕನ್ನಡ ಲಕ್ಷಣಗಳು:</strong> ಉದ್ದವಾದ ದಟ್ಟ ಹಸಿರು ಎಲೆಗಳು ಯಾವುದೇ ಚುಕ್ಕೆ ಅಥವಾ ತುಕ್ಕು ರೋಗವಿಲ್ಲದೆ ಆರೋಗ್ಯವಾಗಿವೆ.</p>
+            </div>
+
+            <div class="treat-grid">
+                <div class="treat-card">
+                    <div class="treat-subhead org-head"><span class="dot g-dot"></span>Organic & Bio-Control Remedies</div>
+                    <ul class="treat-list">
+                        <li>Maintain balanced N-P-K-Zn fertility with farmyard manure and biofertilizers.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #065f46;">
+                        <strong>जैविक उपाय:</strong> गोबर की खाद और जैविक उर्वरक दें।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #065f46;">
+                        <strong>ಸಾವಯವ ಪರಿಹಾರ:</strong> ಕೊಟ್ಟಿಗೆ ಗೊಬ್ಬರ ಮತ್ತು ಜೈವಿಕ ಗೊಬ್ಬರ ನೀಡಿ.
+                    </div>
+                </div>
+
+                <div class="treat-card">
+                    <div class="treat-subhead chem-head"><span class="dot b-dot"></span>Chemical / Fungicide Sprays</div>
+                    <ul class="treat-list">
+                        <li>None required.</li>
+                    </ul>
+                    <div class="hi-text" style="font-size: 7.5pt; margin-top: 4px; color: #1e40af;">
+                        <strong>रासायनिक उपाय:</strong> किसी दवा की आवश्यकता नहीं है।
+                    </div>
+                    <div class="kn-text" style="font-size: 7.5pt; margin-top: 2px; color: #1e40af;">
+                        <strong>ರಾಸಾಯನಿಕ ಸಿಂಪರಣೆ:</strong> ಯಾವುದೇ ರಾಸಾಯನಿಕ ಅಗತ್ಯವಿಲ್ಲ.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+</body>
+</html>

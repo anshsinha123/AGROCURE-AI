@@ -1,0 +1,68 @@
+[
+  {
+    "id": "mdl_v241",
+    "name": "MobileNetV2 Foliar Checkpoint v2.4.1",
+    "version": "2.4.1",
+    "framework": "TensorFlow 2.15 / Keras CNN",
+    "training_date": "2026-10-25",
+    "classes_count": 19,
+    "input_shape": [
+      224,
+      224,
+      3
+    ],
+    "test_accuracy": 98.4,
+    "test_precision": 97.8,
+    "test_recall": 98.1,
+    "f1_score": 97.9,
+    "avg_latency_ms": 42.5,
+    "file_size_mb": 14.2,
+    "status": "Active",
+    "deployed_at": "2026-11-01 10:00:00",
+    "error_rate": 1.6
+  },
+  {
+    "id": "mdl_v230",
+    "name": "MobileNetV2 Foliar Checkpoint v2.3.0",
+    "version": "2.3.0",
+    "framework": "TensorFlow 2.14 / Keras",
+    "training_date": "2026-08-15",
+    "classes_count": 19,
+    "input_shape": [
+      224,
+      224,
+      3
+    ],
+    "test_accuracy": 96.8,
+    "test_precision": 96.1,
+    "test_recall": 96.5,
+    "f1_score": 96.3,
+    "avg_latency_ms": 48.0,
+    "file_size_mb": 14.1,
+    "status": "Archived",
+    "deployed_at": "2026-08-20 14:00:00",
+    "error_rate": 3.2
+  },
+  {
+    "id": "mdl_v220",
+    "name": "Custom 6-Layer CNN Baseline v2.2.0",
+    "version": "2.2.0",
+    "framework": "Keras Sequential",
+    "training_date": "2026-06-10",
+    "classes_count": 19,
+    "input_shape": [
+      224,
+      224,
+      3
+    ],
+    "test_accuracy": 94.2,
+    "test_precision": 93.5,
+    "test_recall": 93.8,
+    "f1_score": 93.6,
+    "avg_latency_ms": 65.0,
+    "file_size_mb": 38.6,
+    "status": "Rollback Ready",
+    "deployed_at": "2026-06-15 09:00:00",
+    "error_rate": 5.8
+  }
+]

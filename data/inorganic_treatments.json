@@ -1,0 +1,64 @@
+[
+  {
+    "id": "chem_01",
+    "product_name": "Mancozeb 75% WP (Dithane M-45)",
+    "active_ingredient": "Mancozeb (Ethylene bisdithiocarbamate) 75% w/w",
+    "cibrc_registration": "CIR-14,208/91-Mancozeb(WP)-112",
+    "assigned_diseases": [
+      "Tomato Early Blight",
+      "Potato Late Blight",
+      "Grapes Black Rot"
+    ],
+    "dosage": "2.0 to 2.5 grams per 1 liter water (600-800g per acre)",
+    "phi_days": 7,
+    "ppe": "Chemical-resistant nitrile gloves, N95 respiratory mask, full sleeve coveralls, protective eye goggles.",
+    "precautions": "Broad-spectrum contact protective fungicide. Must be applied prior to spore germination. Do not exceed 4 consecutive sprays to mitigate soil manganese accumulation.",
+    "status": "Approved"
+  },
+  {
+    "id": "chem_02",
+    "product_name": "Metalaxyl 8% + Mancozeb 64% WP (Ridomil Gold)",
+    "active_ingredient": "Metalaxyl-M 8% + Mancozeb 64% w/w",
+    "cibrc_registration": "CIR-22,410/96-Metalaxyl+Mancozeb-402",
+    "assigned_diseases": [
+      "Tomato Late Blight",
+      "Potato Late Blight"
+    ],
+    "dosage": "1.5 to 2.0 grams per 1 liter water (500g per acre)",
+    "phi_days": 10,
+    "ppe": "Nitrile rubber gloves, chemical splash goggles, vapor respirator, rubber boots.",
+    "precautions": "Systemic and contact action. Highly effective for emergency blight arrest. Never use more than two consecutive applications per season to prevent phenylamide fungal resistance.",
+    "status": "Approved"
+  },
+  {
+    "id": "chem_03",
+    "product_name": "Copper Oxychloride 50% WP (Blitox 50)",
+    "active_ingredient": "Copper Oxychloride 50% metallic copper equivalent",
+    "cibrc_registration": "CIR-8,912/88-Copper(WP)-89",
+    "assigned_diseases": [
+      "Tomato Bacterial Spot",
+      "Capsicum Bacterial Spot",
+      "Grapes Black Rot"
+    ],
+    "dosage": "2.5 to 3.0 grams per 1 liter water (1 kg per acre)",
+    "phi_days": 5,
+    "ppe": "Face shield, rubber apron, heavy-duty gloves, particulate respirator.",
+    "precautions": "Broad spectrum protective bactericide and fungicide. Avoid spraying on flowers or under hot sun to prevent russeting. Maintain neutral spray tank pH.",
+    "status": "Approved"
+  },
+  {
+    "id": "chem_04",
+    "product_name": "Azoxystrobin 23% SC (Amistar)",
+    "active_ingredient": "Azoxystrobin (Strobilurin) 23% w/w",
+    "cibrc_registration": "CIR-35,119/2001-Azoxystrobin(SC)-210",
+    "assigned_diseases": [
+      "Tomato Early Blight",
+      "Grapes Black Rot"
+    ],
+    "dosage": "1.0 ml per 1 liter water (200 ml per acre)",
+    "phi_days": 5,
+    "ppe": "Protective eyewear, chemical-resistant gloves, organic vapor respirator.",
+    "precautions": "Inhibits mitochondrial respiration. Rotate with different chemical modes of action (FRAC Group 11) to prevent fungal strain tolerance.",
+    "status": "Approved"
+  }
+]

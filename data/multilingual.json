@@ -1,0 +1,75 @@
+{
+  "supported_languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "native": "English",
+      "status": "Published"
+    },
+    {
+      "code": "hi",
+      "name": "Hindi",
+      "native": "हिन्दी",
+      "status": "Published"
+    },
+    {
+      "code": "bn",
+      "name": "Bengali",
+      "native": "বাংলা",
+      "status": "Published"
+    },
+    {
+      "code": "pa",
+      "name": "Punjabi",
+      "native": "ਪੰਜਾਬੀ",
+      "status": "Published"
+    },
+    {
+      "code": "mr",
+      "name": "Marathi",
+      "native": "मराठी",
+      "status": "Published"
+    },
+    {
+      "code": "ta",
+      "name": "Tamil",
+      "native": "தமிழ்",
+      "status": "Published"
+    },
+    {
+      "code": "te",
+      "name": "Telugu",
+      "native": "తెలుగు",
+      "status": "Published"
+    }
+  ],
+  "translations": {
+    "dashboard_title": {
+      "en": "AI Plant Pathology Dashboard",
+      "hi": "एआई पौध रोग निदान डैशबोर्ड",
+      "bn": "এআই উদ্ভিদ রোগ নির্ণয় ড্যাশবোর্ড",
+      "pa": "ਏਆਈ ਪੌਦਾ ਰੋਗ ਜਾਂਚ ਡੈਸ਼ਬੋਰਡ",
+      "mr": "एआय वनस्पती रोग निदान डॅशबोर्ड",
+      "ta": "AI தாவர நோய் கண்டறிதல் டாஷ்போர்டு",
+      "te": "AI మొక్కల వ్యాధి నిర్ధారణ డాష్‌బోర్డ్"
+    },
+    "scan_now": {
+      "en": "Scan Leaf Now",
+      "hi": "पत्ती की जांच करें",
+      "bn": "পাতা স্ক্যান করুন",
+      "pa": "ਪੱਤਾ ਸਕੈਨ ਕਰੋ",
+      "mr": "पानाचे स्कॅन करा",
+      "ta": "இலையை ஸ்கேன் செய்க",
+      "te": "ఆకును స్కాన్ చేయండి"
+    },
+    "healthy_leaf": {
+      "en": "Healthy Foliage",
+      "hi": "स्वस्थ पत्ता",
+      "bn": "সুস্থ পাতা",
+      "pa": "ਸਿਹਤਮੰਦ ਪੱਤਾ",
+      "mr": "निरोगी पान",
+      "ta": "ஆரோக்கியமான இலை",
+      "te": "ఆరోగ్యకరమైన ఆకు"
+    }
+  }
+}
