@@ -71,8 +71,9 @@ streamlit run streamlit_app.py
 To deploy, connect the GitHub repository to
 [Streamlit Community Cloud](https://share.streamlit.io), choose branch `main`,
 and set `streamlit_app.py` as the app file. The app uses the repository's
-`requirements.txt` and needs no database secrets. Keep Python on a version
-supported by TensorFlow (Python 3.12 is the configured Cloud default).
+`requirements.txt` and needs no database secrets. Set the app's Python version
+to 3.12 in Streamlit Community Cloud; the current TensorFlow constraint does
+not provide wheels for Python 3.13 or newer.
 
 ### Administrator Setup
 No demo user or administrator accounts are created. To create an initial admin,
